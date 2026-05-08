@@ -1,0 +1,88 @@
+const express = require('express');
+const cors = require('cors');
+const sqlite3 = require('sqlite3').verbose();
+const { open } = require('sqlite');
+const path = require('path');
+
+const app = express();
+const PORT = 3000;
+
+app.use(cors());
+app.use(express.json());
+
+let db;
+
+async function initializeDatabase() {
+  db = await open({
+    filename: path.join(__dirname, 'employees.db'),
+    driver: sqlite3.Database
+  });
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS employees (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      employee_id TEXT UNIQUE NOT NULL,
+      full_name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      service_type TEXT NOT NULL,
+      branch_name TEXT NOT NULL,
+      password TEXT NOT NULL
+    )
+  `);
+
+  // Seed default admin if DB is empty
+  const count = await db.get('SELECT COUNT(*) as count FROM employees');
+  if (count.count === 0) {
+    const seedQuery = `INSERT INTO employees (employee_id, full_name, email, service_type, branch_name, password) VALUES (?, ?, ?, ?, ?, ?)`;
+    await db.run(seedQuery, ['ZIM001', 'Admin Supervisor', 'admin@zimqueue.gov.zw', 'id', 'Makombe Building (Main Provincial Hub)', 'admin123']);
+  }
+}
+
+app.post('/api/employees/register', async (req, res) => {
+  try {
+    const { full_name, email, service_type, branch_name, password } = req.body;
+    
+    // Generate a random employee ID mimicking Zimbabwe govt / bank formats
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    const prefix = service_type === 'banks' ? 'BNK' : (service_type === 'passport' ? 'PASS' : 'ID');
+    const employee_id = `${prefix}${randomNum}`;
+
+    const insertQuery = `INSERT INTO employees (employee_id, full_name, email, service_type, branch_name, password) VALUES (?, ?, ?, ?, ?, ?)`;
+    await db.run(insertQuery, [employee_id, full_name, email, service_type, branch_name, password]);
+
+    res.status(201).json({ 
+      success: true, 
+      message: 'Employee successfully registered to database.',
+      employee_id 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/employees/login', async (req, res) => {
+  try {
+    const { employee_id, password } = req.body;
+    
+    const user = await db.get('SELECT * FROM employees WHERE employee_id = ? AND password = ?', [employee_id, password]);
+    
+    if (user) {
+      res.status(200).json({ success: true, employee: {
+        employee_id: user.employee_id,
+        full_name: user.full_name,
+        service_type: user.service_type,
+        branch_name: user.branch_name
+      }});
+    } else {
+      res.status(401).json({ success: false, message: 'Invalid Employee ID or Password' });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+initializeDatabase().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Zim Queue Employee Database running on http://localhost:${PORT}`);
+  });
+}).catch(console.error);

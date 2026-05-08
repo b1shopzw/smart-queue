@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model branches {
+  branch_id             String          @id
+  bank_code             String?
+  bank_name             String
+  city                  String
+  suburb                String
+  lat                   Float
+  lng                   Float
+  institution_type      String
+  branch_num            Int
+  active                Boolean         @default(true)
+  operating_hours_start String?         @default("08:00")
+  operating_hours_end   String?         @default("16:00")
+  max_capacity          Int?            @default(100)
+  services              String[]        @default(["Banking"])
+  employees             employees[]
+  queue_tickets         queue_tickets[]
+  user_feedback         user_feedback[]
+  daily_stats           daily_stats[]
+}
+
+model employees {
+  id         Int      @id @default(autoincrement())
+  emp_id     String   @unique
+  name       String
+  email      String?
+  role       String
+  branch_id  String
+  branch     branches @relation(fields: [branch_id], references: [branch_id])
+  password   String?
+  active     Boolean  @default(true)
+  created_at DateTime @default(now())
+}
+
+model app_users {
+  id            String          @id @default(uuid())
+  national_id   String          @unique
+  full_name     String
+  phone_number  String
+  created_at    DateTime        @default(now())
+  is_flagged    Boolean         @default(false)
+  tickets       queue_tickets[]
+  user_feedback user_feedback[]
+}
+
+model queue_tickets {
+  id                  String    @id @default(uuid())
+  ticket_number       String
+  branch_id           String
+  user_id             String
+  service_type        String?
+  status              String    @default("WAITING") // WAITING, SERVED, CANCELLED, SKIPPED, PAUSED
+  priority_level      String    @default("Standard") // Standard, VIP, Elderly, Disabled
+  estimated_wait_time Int?
+  joined_at           DateTime  @default(now())
+  served_at           DateTime?
+
+  branch branches  @relation(fields: [branch_id], references: [branch_id])
+  user   app_users @relation(fields: [user_id], references: [id])
+}
+
+model notifications {
+  id         String   @id @default(uuid())
+  title      String
+  message    String
+  branch_id  String?
+  target     String   @default("ALL") // ALL, ACTIVE_IN_QUEUE
+  created_at DateTime @default(now())
+  created_by String
+}
+
+model user_feedback {
+  id         String   @id @default(uuid())
+  user_id    String
+  branch_id  String
+  rating     Int
+  category   String
+  comments   String?
+  created_at DateTime @default(now())
+  status     String   @default("UNREAD") // UNREAD, REVIEWED, RESOLVED
+
+  user   app_users @relation(fields: [user_id], references: [id])
+  branch branches  @relation(fields: [branch_id], references: [branch_id])
+}
+
+model daily_stats {
+  id                String   @id @default(uuid())
+  branch_id         String
+  date              DateTime @db.Date
+  total_tickets     Int      @default(0)
+  served_tickets    Int      @default(0)
+  cancelled_tickets Int      @default(0)
+  avg_wait_time     Float    @default(0) // in minutes
+  peak_hour         Int?
+
+  branch branches @relation(fields: [branch_id], references: [branch_id])
+
+  @@unique([branch_id, date])
+}

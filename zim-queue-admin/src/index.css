@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --color-primary: #1E40AF;
+  --color-on-primary: #FFFFFF;
+  --color-secondary: #3B82F6;
+  --color-accent: #D97706;
+  --color-background: #FAF6F0;
+  --color-panel: #FFFFFF;
+  --color-foreground: #27231F;
+  --color-foreground-muted: #736B63;
+  --color-muted: #F2EBE1;
+  --color-border: #E8E1D7;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.08);
+}
+
+* { box-sizing:border-box; margin:0; padding:0; }
+body { background: var(--color-background); font-family: 'Fira Sans', system-ui, sans-serif; color: var(--color-foreground); }
+
+.admin { padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
+.admin-nav { background: var(--color-panel); padding: 14px 24px; display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--color-border); z-index: 10; }
+.admin-body { padding:24px 32px; flex: 1; overflow-y: auto; background: var(--color-background); }
+
+.nav-links { display:flex; gap:4px; }
+.nav-links div { padding:6px 12px; border-radius:6px; font-size:13px; color: var(--color-foreground-muted); font-weight: 500; cursor: pointer; transition: all 150ms; }
+.nav-links div:hover { background: var(--color-muted); color: var(--color-foreground); }
+.nav-links div.active { background: rgba(30,64,175,0.08); color: var(--color-primary); }
+
+.stat6 { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin-bottom:20px; }
+.stat-box { background: var(--color-panel); border: 1px solid var(--color-border); border-radius: 12px; padding: 16px; box-shadow: var(--shadow-sm); transition: transform 200ms, box-shadow 200ms; cursor: pointer; }
+.stat-box:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: #CBD5E1; }
+.stat-box .num { font-size:28px; font-weight:700; color: var(--color-foreground); margin:6px 0 2px; font-family: 'Fira Code', monospace; }
+.stat-box .lbl { font-size:11px; color: var(--color-foreground-muted); text-transform:uppercase; letter-spacing:.08em; font-weight: 600; }
+.stat-box .trend { font-size:11px; margin-top:2px; font-weight: 500; }
+
+.panel { background: var(--color-panel); border: 1px solid var(--color-border); border-radius: 14px; overflow:hidden; box-shadow: var(--shadow-sm); }
+.panel-head { padding:14px 18px; border-bottom: 1px solid var(--color-border); font-size:14px; font-weight:600; color: var(--color-foreground); display:flex; justify-content:space-between; align-items:center; }
+.panel-body { padding:16px 18px; }
+
+.row3 { display:grid; grid-template-columns:1.6fr 1fr 1fr; gap:16px; margin-bottom:16px; }
+.row3b { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:16px; }
+.row2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+
+.bar-wrap { height:6px; background: #E2E8F0; border-radius:3px; overflow:hidden; margin-bottom:8px; margin-top: 4px; }
+.bar-fill { height:100%; border-radius:3px; }
+
+.badge { font-size:10px; padding:3px 8px; border-radius:20px; font-weight:600; }
+.bg { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.ba { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+.br { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.bb { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+
+.list-item { display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom: 1px solid var(--color-border); transition: background 150ms; cursor: pointer; }
+.list-item:hover { background: var(--color-muted); }
+.list-item:last-child { border-bottom:none; }
+
+.action-btn { background: var(--color-accent); border: none; border-radius:8px; padding:10px 20px; font-size:13px; color:white; font-weight: 700; cursor:pointer; transition: all 200ms; }
+.action-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+textarea:focus, select:focus, input:focus { outline: none; border-color: var(--color-primary) !important; box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1); }

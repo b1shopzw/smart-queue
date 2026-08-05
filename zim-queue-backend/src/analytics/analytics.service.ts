@@ -68,14 +68,27 @@ export class AnalyticsService {
         },
       },
       update: {
-        served_tickets: stats.total_served,
-        avg_wait_time: stats.avg_wait_time_minutes,
+        served_tickets: stats.servedToday,
+        avg_wait_time: stats.avgWaitTime,
       },
       create: {
         branch_id,
         date: today,
-        served_tickets: stats.total_served,
-        avg_wait_time: stats.avg_wait_time_minutes,
+        served_tickets: stats.servedToday,
+        avg_wait_time: stats.avgWaitTime,
+      },
+    });
+  }
+
+  async submitFeedback(data: any) {
+    return this.prisma.user_feedback.create({
+      data: {
+        user_id: data.user_id,
+        branch_id: data.branch_id,
+        rating: data.rating,
+        category: data.category,
+        comments: data.comments || '',
+        status: 'UNREAD',
       },
     });
   }

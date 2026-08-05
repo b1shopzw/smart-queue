@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, Post, Body } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
@@ -20,5 +20,11 @@ export class AnalyticsController {
     @Query('days') days: string,
   ) {
     return this.analyticsService.getHistoricalStats(branch_id, days ? parseInt(days) : 7);
+  }
+
+  @Post('feedback')
+  @ApiOperation({ summary: 'Submit user feedback' })
+  async submitFeedback(@Body() data: any) {
+    return this.analyticsService.submitFeedback(data);
   }
 }

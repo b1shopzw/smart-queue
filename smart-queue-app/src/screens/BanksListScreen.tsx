@@ -62,9 +62,9 @@ export default function BanksListScreen({ route, navigation }: any) {
       });
       
       try {
-        const mappedServiceType = serviceType === 'Banks' ? 'Bank' : 
-                                  serviceType === 'Passport Offices' ? 'Passport' : 
-                                  'National ID';
+        const mappedServiceType = serviceType === 'Banks' ? 'bank' : 
+                                  serviceType === 'Passport Offices' ? 'passport' : 
+                                  'national_id';
 
         const { data: dbBranches, error } = await supabase
           .from('branches')
@@ -97,8 +97,8 @@ export default function BanksListScreen({ route, navigation }: any) {
             return {
               id: b.branch_id,
               name: `${b.bank_name} — ${b.city} (${b.suburb}, Branch ${b.branch_num})`,
-              lat: b.latitude,
-              lon: b.longitude,
+              lat: b.lat,
+              lon: b.lng,
               queueLength: qLen,
               waitTime: qLen * 5 // Rough estimate: 5 mins per active ticket
             };

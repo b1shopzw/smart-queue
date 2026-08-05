@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-const BASE_URL = 'http://localhost:3000'; // Update with your local IP if testing on physical device
+const BASE_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:3000'; // Set EXPO_PUBLIC_BACKEND_URL to your local IP when testing on a device
 
 export async function apiRequest(endpoint: string, options: RequestInit = {}) {
   const { data: { session } } = await supabase.auth.getSession();

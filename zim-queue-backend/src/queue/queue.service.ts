@@ -15,9 +15,28 @@ export class QueueService {
   async createTicket(data: {
     branch_id: string;
     user_id: string;
+    user_name?: string;
+    user_email?: string;
     service_type: string;
     priority_level: string;
   }) {
+    // Ensure the user exists in the local database to avoid foreign key errors
+    await this.prisma.app_users.upsert({
+      where: { id: data.user_id },
+      update: {
+        full_name: data.user_name || 'User',
+      },
+      create: {
+        id: data.user_id,
+        full_name: data.user_name || 'User',
+        national_id: data.user_id, // Fallback since it's required and unique
+        phone_number: data.user_email || '0000000000', // Fallback for required phone
+      },
+    });
+
+    // Extract properties to save to ticket
+    const { user_name, user_email, ...ticketData } = data;
+
     // Generate ticket number (e.g., A001, B002)
     const count = await this.prisma.queue_tickets.count({
       where: {
@@ -42,7 +61,7 @@ export class QueueService {
 
     return this.prisma.queue_tickets.create({
       data: {
-        ...data,
+        ...ticketData,
         ticket_number: ticketNumber,
         estimated_wait_time: estimatedWaitTime,
         status: 'WAITING',

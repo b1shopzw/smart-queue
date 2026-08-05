@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import GlassCard from '../components/GlassCard';
 import PrimaryButton from '../components/PrimaryButton';
 import { supabase } from '../utils/supabase';
+import { apiRequest } from '../utils/api';
 import { colors } from '../theme/colors';
 import { typography } from '../theme/typography';
 
@@ -64,21 +65,22 @@ export default function FeedbackScreen({ navigation, route }: any) {
       return Alert.alert('Error', 'User profile not found. Please log in.');
     }
 
-    const { error } = await supabase.from('user_feedback').insert({
-      user_id: userId,
-      branch_id: selectedBranch,
-      rating,
-      category,
-      comments,
-      status: 'UNREAD'
-    });
-
-    setSubmitting(false);
-
-    if (error) {
-      Alert.alert('Error', error.message);
-    } else {
+    try {
+      await apiRequest('/analytics/feedback', {
+        method: 'POST',
+        body: JSON.stringify({
+          user_id: userId,
+          branch_id: selectedBranch,
+          rating,
+          category,
+          comments,
+        }),
+      });
       setSubmitted(true);
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to submit feedback.');
+    } finally {
+      setSubmitting(false);
     }
   };
 

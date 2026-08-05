@@ -219,8 +219,10 @@ export default function SelectSlotScreen({ route, navigation }: any) {
           body: JSON.stringify({
             branch_id: branchId,
             user_id: user.id,
+            user_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+            user_email: user.email,
             service_type: serviceType,
-            priority_level: 'Standard' // Default, could be expanded to check user profile
+            priority_level: 'Standard'
           }),
         });
 
@@ -228,18 +230,7 @@ export default function SelectSlotScreen({ route, navigation }: any) {
         navigation.navigate('Queue', { bankName: bankName, ticketInfo: ticketData });
       } catch (backendError: any) {
         console.error('Backend Join Queue Error:', backendError);
-        // Fallback to direct supabase if backend fails during migration
-        const { data, error } = await supabase.from('queue_tickets').insert([{
-          branch_id: branchId,
-          user_id: user.id,
-          ticket_number: 'A' + Math.floor(Math.random() * 1000).toString().padStart(3, '0'),
-          service_type: serviceType,
-          joined_at: insertDate.toISOString(),
-          status: 'WAITING'
-        }]).select().single();
-        
-        if (error) throw error;
-        navigation.navigate('Queue', { bankName: bankName, ticketInfo: data });
+        Alert.alert('Error', 'Failed to join the queue. Please check your connection and try again.');
       }
       
     } catch(err: any) {

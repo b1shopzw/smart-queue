@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import AdminLogin from './AdminLogin';
+import AdminSignup from './AdminSignup';
 import './index.css';
 
 const Dashboard = lazy(() => import('./Dashboard'));
@@ -50,6 +51,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<AdminLogin />} />
+        <Route path="/signup" element={<AdminSignup />} />
         <Route path="/dashboard" element={<DashboardRouter />} />
       </Routes>
     </BrowserRouter>

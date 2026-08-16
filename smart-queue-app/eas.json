@@ -1,0 +1,31 @@
+{
+  "cli": {
+    "version": ">= 21.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "android": {
+        "buildType": "apk"
+      },
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://aifpnenivkozlisgedvg.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFpZnBuZW5pdmtvemxpc2dlZHZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5MDA4MjEsImV4cCI6MjA5MTQ3NjgyMX0.K2lHRLxz9dA5Xr-A1q6F_oSNXAIq3be-xIKUc6Jr9k4",
+        "EXPO_PUBLIC_BACKEND_URL": "http://10.126.55.181:3000"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

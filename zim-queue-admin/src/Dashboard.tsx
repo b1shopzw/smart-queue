@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import './index.css';
 
@@ -8,15 +8,15 @@ const containerVariants = {
     opacity: 1, 
     transition: { staggerChildren: 0.08 } 
   }
-};
+} as const;
 
 const itemVariants = {
   hidden: { opacity: 0, y: 15 },
   visible: { 
     opacity: 1, y: 0, 
-    transition: { type: 'spring', stiffness: 300, damping: 24 } 
+    transition: { type: 'spring' as const, stiffness: 300, damping: 24 } 
   }
-};
+} as const;
 
 export default function Dashboard({ ctx }: { ctx: any }) {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -93,7 +93,7 @@ export default function Dashboard({ ctx }: { ctx: any }) {
       >
         <motion.div variants={itemVariants} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginBottom:'24px'}}>
           <div>
-            <div style={{fontSize:'26px',fontWeight:700,color:'var(--color-foreground)',fontFamily:'"Fira Code", monospace'}}>Good morning, {ctx.emp.name?.split(' ')[0] || 'Admin'}</div>
+            <div style={{fontSize:'26px',fontWeight:700,color:'var(--color-foreground)',fontFamily:"Inter, system-ui, sans-serif"}}>Good morning, {ctx.emp.name?.split(' ')[0] || 'Admin'}</div>
             <div style={{fontSize:'14px',color:'var(--color-foreground-muted)',marginTop:'4px'}}>Role: {ctx.role} | Here's what's happening across Zimbabwe's service network right now</div>
           </div>
           <div style={{display:'flex',gap:'10px'}}>
@@ -168,7 +168,7 @@ export default function Dashboard({ ctx }: { ctx: any }) {
             <div className="panel-head">SLA performance</div>
             <div className="panel-body">
               <div style={{textAlign:'center',marginBottom:'16px'}}>
-                <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 200 }} style={{fontSize:'42px',fontWeight:700,color:'#166534',marginBottom:'2px',fontFamily:'"Fira Code", monospace'}}>91%</motion.div>
+                <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring" as const, stiffness: 200 }} style={{fontSize:'42px',fontWeight:700,color:'#166534',marginBottom:'2px',fontFamily:"Inter, system-ui, sans-serif"}}>91%</motion.div>
                 <div style={{fontSize:'12px',color:'var(--color-foreground-muted)',fontWeight:500}}>served within 30-min SLA</div>
               </div>
               <div className="bar-wrap" style={{height:'6px',marginBottom:'16px'}}><div className="bar-fill" style={{background:'#10b981',width:'91%'}}></div></div>
@@ -176,21 +176,21 @@ export default function Dashboard({ ctx }: { ctx: any }) {
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                   <span style={{fontSize:'12px',color:'var(--color-foreground-muted)',fontWeight:500}}>Under 15 min</span>
                   <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                    <div style={{width:'60px',height:'4px',background:'var(--color-muted)',borderRadius:'2px',overflow:'hidden'}}><div style={{height:'100%',background:'var(--color-primary)',width:'34%'}}></div></div>
+                    <div style={{width:'60px',height:'4px',background:'var(--color-panel-hover)',borderRadius:'2px',overflow:'hidden'}}><div style={{height:'100%',background:'var(--color-primary)',width:'34%'}}></div></div>
                     <span style={{fontSize:'12px',color:'var(--color-primary)',fontWeight:700,width:'24px'}}>34%</span>
                   </div>
                 </div>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                   <span style={{fontSize:'12px',color:'var(--color-foreground-muted)',fontWeight:500}}>15–30 min</span>
                   <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                    <div style={{width:'60px',height:'4px',background:'var(--color-muted)',borderRadius:'2px',overflow:'hidden'}}><div style={{height:'100%',background:'#10b981',width:'57%'}}></div></div>
+                    <div style={{width:'60px',height:'4px',background:'var(--color-panel-hover)',borderRadius:'2px',overflow:'hidden'}}><div style={{height:'100%',background:'#10b981',width:'57%'}}></div></div>
                     <span style={{fontSize:'12px',color:'#166534',fontWeight:700,width:'24px'}}>57%</span>
                   </div>
                 </div>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                   <span style={{fontSize:'12px',color:'var(--color-foreground-muted)',fontWeight:500}}>Over 30 min</span>
                   <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                    <div style={{width:'60px',height:'4px',background:'var(--color-muted)',borderRadius:'2px',overflow:'hidden'}}><div style={{height:'100%',background:'#DC2626',width:'9%'}}></div></div>
+                    <div style={{width:'60px',height:'4px',background:'var(--color-panel-hover)',borderRadius:'2px',overflow:'hidden'}}><div style={{height:'100%',background:'#DC2626',width:'9%'}}></div></div>
                     <span style={{fontSize:'12px',color:'#991b1b',fontWeight:700,width:'24px'}}>9%</span>
                   </div>
                 </div>
@@ -229,12 +229,12 @@ export default function Dashboard({ ctx }: { ctx: any }) {
             <div className="panel-head">User satisfaction</div>
             <div className="panel-body">
               <div style={{display:'flex',alignItems:'baseline',gap:'8px',marginBottom:'16px'}}>
-                <span style={{fontSize:'42px',fontWeight:700,color:'var(--color-primary)',fontFamily:'"Fira Code", monospace'}}>4.3</span><span style={{fontSize:'14px',color:'var(--color-foreground-muted)',fontWeight:600}}>/ 5.0</span>
+                <span style={{fontSize:'42px',fontWeight:700,color:'var(--color-primary)',fontFamily:"Inter, system-ui, sans-serif"}}>4.3</span><span style={{fontSize:'14px',color:'var(--color-foreground-muted)',fontWeight:600}}>/ 5.0</span>
               </div>
               <div style={{display:'flex',flexDirection:'column',gap:'8px',marginBottom:'16px'}}>
-                <div style={{display:'flex',alignItems:'center',gap:'10px'}}><span style={{fontSize:'12px',color:'var(--color-foreground)',width:'14px',fontWeight:700}}>5★</span><div style={{flex:1,height:'6px',background:'var(--color-muted)',borderRadius:'3px',overflow:'hidden'}}><div style={{height:'100%',background:'#10b981',width:'52%'}}></div></div><span style={{fontSize:'11px',color:'var(--color-foreground-muted)',width:'24px',fontWeight:600}}>52%</span></div>
-                <div style={{display:'flex',alignItems:'center',gap:'10px'}}><span style={{fontSize:'12px',color:'var(--color-foreground)',width:'14px',fontWeight:700}}>4★</span><div style={{flex:1,height:'6px',background:'var(--color-muted)',borderRadius:'3px',overflow:'hidden'}}><div style={{height:'100%',background:'#34d399',width:'28%'}}></div></div><span style={{fontSize:'11px',color:'var(--color-foreground-muted)',width:'24px',fontWeight:600}}>28%</span></div>
-                <div style={{display:'flex',alignItems:'center',gap:'10px'}}><span style={{fontSize:'12px',color:'var(--color-foreground)',width:'14px',fontWeight:700}}>3★</span><div style={{flex:1,height:'6px',background:'var(--color-muted)',borderRadius:'3px',overflow:'hidden'}}><div style={{height:'100%',background:'#fbbf24',width:'12%'}}></div></div><span style={{fontSize:'11px',color:'var(--color-foreground-muted)',width:'24px',fontWeight:600}}>12%</span></div>
+                <div style={{display:'flex',alignItems:'center',gap:'10px'}}><span style={{fontSize:'12px',color:'var(--color-foreground)',width:'14px',fontWeight:700}}>5★</span><div style={{flex:1,height:'6px',background:'var(--color-panel-hover)',borderRadius:'3px',overflow:'hidden'}}><div style={{height:'100%',background:'#10b981',width:'52%'}}></div></div><span style={{fontSize:'11px',color:'var(--color-foreground-muted)',width:'24px',fontWeight:600}}>52%</span></div>
+                <div style={{display:'flex',alignItems:'center',gap:'10px'}}><span style={{fontSize:'12px',color:'var(--color-foreground)',width:'14px',fontWeight:700}}>4★</span><div style={{flex:1,height:'6px',background:'var(--color-panel-hover)',borderRadius:'3px',overflow:'hidden'}}><div style={{height:'100%',background:'#34d399',width:'28%'}}></div></div><span style={{fontSize:'11px',color:'var(--color-foreground-muted)',width:'24px',fontWeight:600}}>28%</span></div>
+                <div style={{display:'flex',alignItems:'center',gap:'10px'}}><span style={{fontSize:'12px',color:'var(--color-foreground)',width:'14px',fontWeight:700}}>3★</span><div style={{flex:1,height:'6px',background:'var(--color-panel-hover)',borderRadius:'3px',overflow:'hidden'}}><div style={{height:'100%',background:'#fbbf24',width:'12%'}}></div></div><span style={{fontSize:'11px',color:'var(--color-foreground-muted)',width:'24px',fontWeight:600}}>12%</span></div>
               </div>
               <div style={{paddingTop:'12px',borderTop:'1px solid var(--color-border)'}}>
                 <div style={{fontSize:'11px',color:'var(--color-foreground-muted)',marginBottom:'4px',textTransform:'uppercase',letterSpacing:'0.05em',fontWeight:600}}>Top complaint theme</div>

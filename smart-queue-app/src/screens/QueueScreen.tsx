@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Alert, Modal, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Alert, Modal, ActivityIndicator, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import GlassCard from '../components/GlassCard';
 import PrimaryButton from '../components/PrimaryButton';
@@ -25,72 +25,74 @@ export default function QueueScreen({ route, navigation }: any) {
   const [modalVisible, setModalVisible] = useState(false);
   const [slotCapacities, setSlotCapacities] = useState<Record<string, number>>({});
   const [isChangingSlot, setIsChangingSlot] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchQueueStatus = useCallback(async () => {
+    if (!ticketInfo) return;
+    
+    try {
+      // 1. Get people ahead of this ticket in the same branch
+      const { count, error: countError } = await supabase
+        .from('queue_tickets')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'WAITING')
+        .eq('branch_id', ticketInfo.branch_id)
+        .lt('joined_at', ticketInfo.joined_at);
+        
+      if (!countError && count !== null) {
+        setPeopleAhead(count);
+        setTimeLeft(count * 5 + 2);
+      }
+
+      // 2. Get the currently serving ticket for this branch
+      const { data: servingData, error: servingError } = await supabase
+        .from('queue_tickets')
+        .select('ticket_number')
+        .eq('status', 'PROCESSING')
+        .eq('branch_id', ticketInfo.branch_id)
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (!servingError && servingData) {
+        setServingNum(servingData.ticket_number);
+      } else {
+        setServingNum('-');
+      }
+    } catch (err) {
+      console.error('Error fetching queue status:', err);
+    }
+  }, [ticketInfo]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchQueueStatus();
+    setRefreshing(false);
+  }, [fetchQueueStatus]);
 
   useEffect(() => {
-    const fetchQueueStatus = async () => {
-      if (!ticketInfo) return;
-      
-      try {
-        // 1. Get people ahead of this ticket in the same branch
-        const { count, error: countError } = await supabase
-          .from('queue_tickets')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'WAITING')
-          .eq('branch_id', ticketInfo.branch_id)
-          .lt('joined_at', ticketInfo.joined_at);
-          
-        if (!countError && count !== null) {
-          setPeopleAhead(count);
-          setTimeLeft(count * 5 + 2); // roughly 5 mins per person
-        }
-
-        // 2. Get the currently serving ticket for this branch
-        const { data: servingData, error: servingError } = await supabase
-          .from('queue_tickets')
-          .select('ticket_number')
-          .eq('status', 'PROCESSING')
-          .eq('branch_id', ticketInfo.branch_id)
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .single();
-        
-        if (!servingError && servingData) {
-          setServingNum(servingData.ticket_number);
-        } else {
-          // No one is currently being processed
-          setServingNum('-');
-        }
-      } catch (err) {
-        console.error('Error fetching queue status:', err);
-      }
-    };
-    
-    // Initial fetch
     fetchQueueStatus();
     
-    // Subscribe to realtime changes on the queue_tickets table for this branch
     const channel = supabase
       .channel(`queue_updates_${ticketInfo?.branch_id}`)
       .on(
         'postgres_changes',
         {
-          event: '*', // Listen to INSERT, UPDATE, and DELETE
+          event: '*',
           schema: 'public',
           table: 'queue_tickets',
           filter: `branch_id=eq.${ticketInfo?.branch_id}`,
         },
         () => {
-          // Instantly refetch whenever the admin modifies the queue
           fetchQueueStatus();
         }
       )
       .subscribe();
 
-    // Cleanup subscription on unmount
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [ticketInfo]);
+  }, [ticketInfo, fetchQueueStatus]);
   
   // Fetch capacities when modal opens
   useEffect(() => {
@@ -204,7 +206,17 @@ export default function QueueScreen({ route, navigation }: any) {
         <Text style={styles.headerTitle}>Your Ticket</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView 
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh} 
+            colors={[colors.primary]} 
+            tintColor={colors.primary} 
+          />
+        }
+      >
         <Text style={styles.bankName}>{bankName}</Text>
         
         <GlassCard style={styles.ticketCard} intensity={80}>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, FlatList, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MotiView } from 'moti';
 import GlassCard from '../components/GlassCard';
@@ -53,87 +53,86 @@ export default function BanksListScreen({ route, navigation }: any) {
     { id: '203', name: 'Mutare Civil Registry (ID)', lat: -18.9700, lon: 32.6600 },
   ];
 
-  useEffect(() => {
-    async function fetchLiveServices() {
-      // Only show loading indicator if list is empty (prevents flashing during realtime updates)
-      setLiveBanks(prev => {
-        if (prev.length === 0) setIsLoading(true);
-        return prev;
-      });
-      
-      try {
-        const mappedServiceType = serviceType === 'Banks' ? 'bank' : 
-                                  serviceType === 'Passport Offices' ? 'passport' : 
-                                  'national_id';
+  const [refreshing, setRefreshing] = useState(false);
 
-        const { data: dbBranches, error } = await supabase
-          .from('branches')
-          .select('*')
-          .eq('institution_type', mappedServiceType)
-          .eq('active', true);
+  const fetchLiveServices = useCallback(async () => {
+    try {
+      const mappedServiceType = serviceType === 'Banks' ? 'bank' : 
+                                serviceType === 'Passport Offices' ? 'passport' : 
+                                'national_id';
 
-        if (error) throw error;
+      const { data: dbBranches, error } = await supabase
+        .from('branches')
+        .select('*')
+        .eq('institution_type', mappedServiceType)
+        .eq('active', true);
 
-        let fetchedItems: any[] = [];
-        if (dbBranches && dbBranches.length > 0) {
+      if (error) throw error;
+
+      let fetchedItems: any[] = [];
+      if (dbBranches && dbBranches.length > 0) {
+        const branchIds = dbBranches.map((b: any) => b.branch_id);
+        const { data: ticketsData } = await supabase
+          .from('queue_tickets')
+          .select('branch_id')
+          .in('status', ['WAITING', 'PROCESSING', 'PAUSED'])
+          .in('branch_id', branchIds);
           
-          // Fetch real ticket counts for these branches
-          const branchIds = dbBranches.map((b: any) => b.branch_id);
-          const { data: ticketsData } = await supabase
-            .from('queue_tickets')
-            .select('branch_id')
-            .in('status', ['WAITING', 'PROCESSING', 'PAUSED'])
-            .in('branch_id', branchIds);
-            
-          const queueCounts: Record<string, number> = {};
-          if (ticketsData) {
-            ticketsData.forEach(t => {
-              queueCounts[t.branch_id] = (queueCounts[t.branch_id] || 0) + 1;
-            });
-          }
-
-          fetchedItems = dbBranches.map((b: any) => {
-            const qLen = queueCounts[b.branch_id] || 0;
-            return {
-              id: b.branch_id,
-              name: `${b.bank_name} — ${b.city} (${b.suburb}, Branch ${b.branch_num})`,
-              lat: b.lat,
-              lon: b.lng,
-              queueLength: qLen,
-              waitTime: qLen * 5 // Rough estimate: 5 mins per active ticket
-            };
+        const queueCounts: Record<string, number> = {};
+        if (ticketsData) {
+          ticketsData.forEach(t => {
+            queueCounts[t.branch_id] = (queueCounts[t.branch_id] || 0) + 1;
           });
         }
 
-        if (fetchedItems.length === 0) {
-          fetchedItems = fallbackBanks.map((b:any) => ({
-            ...b, queueLength: 0, waitTime: 0
-          }));
-        }
+        fetchedItems = dbBranches.map((b: any) => {
+          const qLen = queueCounts[b.branch_id] || 0;
+          return {
+            id: b.branch_id,
+            name: `${b.bank_name} — ${b.city} (${b.suburb}, Branch ${b.branch_num})`,
+            lat: b.lat,
+            lon: b.lng,
+            queueLength: qLen,
+            waitTime: qLen * 5
+          };
+        });
+      }
 
-        fetchedItems.sort((a, b) => a.name.localeCompare(b.name));
-        setLiveBanks(fetchedItems);
-
-      } catch(e) {
-        const handledFallback = fallbackBanks.map((b:any) => ({
+      if (fetchedItems.length === 0) {
+        fetchedItems = fallbackBanks.map((b:any) => ({
           ...b, queueLength: 0, waitTime: 0
         }));
-        setLiveBanks(handledFallback);
-      } finally {
-        setIsLoading(false);
       }
+
+      fetchedItems.sort((a, b) => a.name.localeCompare(b.name));
+      setLiveBanks(fetchedItems);
+
+    } catch(e) {
+      const handledFallback = fallbackBanks.map((b:any) => ({
+        ...b, queueLength: 0, waitTime: 0
+      }));
+      setLiveBanks(handledFallback);
+    } finally {
+      setIsLoading(false);
     }
-    
+  }, [serviceType]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchLiveServices();
+    setRefreshing(false);
+  }, [fetchLiveServices]);
+
+  useEffect(() => {
+    setIsLoading(true);
     fetchLiveServices();
 
-    // Subscribe to realtime changes so the counts update instantly
     const channel = supabase
       .channel('banks_list_queue_updates')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'queue_tickets' },
         () => {
-          // Re-calculate when anyone joins or leaves a queue
           fetchLiveServices();
         }
       )
@@ -142,7 +141,7 @@ export default function BanksListScreen({ route, navigation }: any) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userLocation, serviceType]);
+  }, [userLocation, serviceType, fetchLiveServices]);
 
   const filteredBanks = useMemo(() => {
     let result = [...liveBanks];
@@ -215,6 +214,14 @@ export default function BanksListScreen({ route, navigation }: any) {
           maxToRenderPerBatch={10}
           windowSize={5}
           removeClippedSubviews={true}
+          refreshControl={
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh} 
+              colors={[colors.primary]} 
+              tintColor={colors.primary} 
+            />
+          }
           ListEmptyComponent={
             <Text style={styles.noResultsText}>No centers are currently open.</Text>
           }

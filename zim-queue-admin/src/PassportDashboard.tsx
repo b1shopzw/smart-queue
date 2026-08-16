@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import './index.css';
 
@@ -8,15 +8,15 @@ const containerVariants = {
     opacity: 1, 
     transition: { staggerChildren: 0.08 } 
   }
-};
+} as const;
 
 const itemVariants = {
   hidden: { opacity: 0, y: 15 },
   visible: { 
     opacity: 1, y: 0, 
-    transition: { type: 'spring', stiffness: 300, damping: 24 } 
+    transition: { type: 'spring' as const, stiffness: 300, damping: 24 } 
   }
-};
+} as const;
 
 export default function PassportDashboard({ ctx }: { ctx: any }) {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -168,7 +168,7 @@ export default function PassportDashboard({ ctx }: { ctx: any }) {
             <div className="panel-head">SLA performance</div>
             <div className="panel-body">
               <div style={{textAlign:'center',marginBottom:'16px'}}>
-                <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 200 }} style={{fontSize:'42px',fontWeight:700,color:'#166534',marginBottom:'2px',fontFamily:'"Fira Code", monospace'}}>91%</motion.div>
+                <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring" as const, stiffness: 200 }} style={{fontSize:'42px',fontWeight:700,color:'#166534',marginBottom:'2px',fontFamily:"Inter, system-ui, sans-serif"}}>91%</motion.div>
                 <div style={{fontSize:'12px',color:'var(--color-foreground-muted)',fontWeight:500}}>served within 30-min SLA</div>
               </div>
               <div className="bar-wrap" style={{height:'6px',marginBottom:'16px'}}><div className="bar-fill" style={{background:'#10b981',width:'91%'}}></div></div>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Alert, ActivityIndicator, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import GlassCard from '../components/GlassCard';
 import PrimaryButton from '../components/PrimaryButton';
@@ -12,6 +12,7 @@ export default function BranchDetailScreen({ route, navigation }: any) {
   const branchId = route.params?.branchId;
   const [isJoining, setIsJoining] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Dynamic Trend Data State
   const [trendData, setTrendData] = useState([
@@ -22,65 +23,62 @@ export default function BranchDetailScreen({ route, navigation }: any) {
     { label: '15:00', height: 10, isCurrent: false },
   ]);
 
-  useEffect(() => {
-    const checkOpenStatus = () => {
-      const now = new Date();
-      const currentHour = now.getHours();
-      const timeInMinutes = currentHour * 60 + now.getMinutes();
-      const openTime = 8 * 60; // 08:00
-      const closeTime = 15 * 60; // 15:00
-      setIsOpen(timeInMinutes >= openTime && timeInMinutes < closeTime);
-    };
+  const loadData = useCallback(async () => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const timeInMinutes = currentHour * 60 + now.getMinutes();
+    setIsOpen(timeInMinutes >= 8 * 60 && timeInMinutes < 15 * 60);
 
-    const fetchTrendData = async () => {
-      if (!branchId) return;
-      
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      try {
-        const { data } = await supabase
-          .from('queue_tickets')
-          .select('joined_at')
-          .eq('branch_id', branchId)
-          .gte('joined_at', today.toISOString());
-          
-        const buckets = [0, 0, 0, 0, 0];
-        
-        if (data && data.length > 0) {
-          data.forEach(ticket => {
-            const date = new Date(ticket.joined_at);
-            const h = date.getHours();
-            if (h >= 8 && h < 10) buckets[0]++;
-            else if (h >= 10 && h < 12) buckets[1]++;
-            else if (h >= 12 && h < 14) buckets[2]++;
-            else if (h >= 14 && h < 15) buckets[3]++;
-            else if (h >= 15) buckets[4]++;
-          });
-        }
-        
-        const maxVal = Math.max(...buckets, 5); // Minimum denominator to avoid huge spikes for 1 ticket
-        const currentHour = new Date().getHours();
-        
-        setTrendData([
-          { label: '08:00', height: Math.max((buckets[0] / maxVal) * 100, 10), isCurrent: currentHour >= 8 && currentHour < 10 },
-          { label: '10:00', height: Math.max((buckets[1] / maxVal) * 100, 10), isCurrent: currentHour >= 10 && currentHour < 12 },
-          { label: '12:00', height: Math.max((buckets[2] / maxVal) * 100, 10), isCurrent: currentHour >= 12 && currentHour < 14 },
-          { label: '14:00', height: Math.max((buckets[3] / maxVal) * 100, 10), isCurrent: currentHour >= 14 && currentHour < 15 },
-          { label: '15:00', height: Math.max((buckets[4] / maxVal) * 100, 10), isCurrent: currentHour >= 15 },
-        ]);
-        
-      } catch (err) {
-        console.error('Trend fetch error:', err);
+    if (!branchId) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    try {
+      const { data } = await supabase
+        .from('queue_tickets')
+        .select('joined_at')
+        .eq('branch_id', branchId)
+        .gte('joined_at', today.toISOString());
+      const buckets = [0, 0, 0, 0, 0];
+      if (data && data.length > 0) {
+        data.forEach(ticket => {
+          const date = new Date(ticket.joined_at);
+          const h = date.getHours();
+          if (h >= 8 && h < 10) buckets[0]++;
+          else if (h >= 10 && h < 12) buckets[1]++;
+          else if (h >= 12 && h < 14) buckets[2]++;
+          else if (h >= 14 && h < 15) buckets[3]++;
+          else if (h >= 15) buckets[4]++;
+        });
       }
-    };
-
-    checkOpenStatus();
-    fetchTrendData();
-    
-    const interval = setInterval(checkOpenStatus, 60000);
-    return () => clearInterval(interval);
+      const maxVal = Math.max(...buckets, 5);
+      const ch = new Date().getHours();
+      setTrendData([
+        { label: '08:00', height: Math.max((buckets[0] / maxVal) * 100, 10), isCurrent: ch >= 8 && ch < 10 },
+        { label: '10:00', height: Math.max((buckets[1] / maxVal) * 100, 10), isCurrent: ch >= 10 && ch < 12 },
+        { label: '12:00', height: Math.max((buckets[2] / maxVal) * 100, 10), isCurrent: ch >= 12 && ch < 14 },
+        { label: '14:00', height: Math.max((buckets[3] / maxVal) * 100, 10), isCurrent: ch >= 14 && ch < 15 },
+        { label: '15:00', height: Math.max((buckets[4] / maxVal) * 100, 10), isCurrent: ch >= 15 },
+      ]);
+    } catch (err) {
+      console.error('Trend fetch error:', err);
+    }
   }, [branchId]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  }, [loadData]);
+
+  useEffect(() => {
+    loadData();
+    const interval = setInterval(() => {
+      const now = new Date();
+      const t = now.getHours() * 60 + now.getMinutes();
+      setIsOpen(t >= 8 * 60 && t < 15 * 60);
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [loadData]);
 
   // Extract a clean domain prefix from the institution name
   const domainPrefix = bankName.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '') || 'institution';
@@ -106,7 +104,17 @@ export default function BranchDetailScreen({ route, navigation }: any) {
         <Text style={styles.headerTitle}>Branch Details</Text>
       </View>
       
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
+      >
         <Text style={styles.bankName}>{bankName}</Text>
         
         <GlassCard style={styles.card}>

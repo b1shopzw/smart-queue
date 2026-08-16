@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput, Image } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, TextInput, Image, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -30,89 +30,70 @@ export default function HomeScreen({ navigation }: any) {
     return 'Good evening';
   };
 
-  useEffect(() => {
-    let channel: any;
+  const [refreshing, setRefreshing] = useState(false);
 
-    const loadData = async () => {
-      // 1. Fetch User Name & Recent Ticket
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const metaName = user.user_metadata?.full_name || user.user_metadata?.name;
-          if (metaName) {
-            setUserName(metaName.split(' ')[0]);
-          } else {
-            try {
-              const { data } = await supabase.from('app_users').select('full_name').eq('id', user.id).single();
-              if (data && data.full_name) setUserName(data.full_name.split(' ')[0]);
-            } catch(e) {}
-          }
+  const loadData = useCallback(async () => {
+    // 1. Fetch User Name & Recent Ticket
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const metaName = user.user_metadata?.full_name || user.user_metadata?.name;
+        if (metaName) {
+          setUserName(metaName.split(' ')[0]);
+        } else {
+          try {
+            const { data } = await supabase.from('app_users').select('full_name').eq('id', user.id).single();
+            if (data && data.full_name) setUserName(data.full_name.split(' ')[0]);
+          } catch(e) {}
+        }
 
-          const fetchRecentTicket = async () => {
-            const { data: ticketData } = await supabase
-              .from('queue_tickets')
-              .select('*, branch:branches(*)')
-              .eq('user_id', user.id)
-              .order('joined_at', { ascending: false })
-              .limit(1)
-              .single();
+        const fetchRecentTicket = async () => {
+          const { data: ticketData } = await supabase
+            .from('queue_tickets')
+            .select('*, branch:branches(*)')
+            .eq('user_id', user.id)
+            .order('joined_at', { ascending: false })
+            .limit(1)
+            .single();
+          
+          if (ticketData) {
+            setRecentTicket(ticketData);
             
-            if (ticketData) {
-              setRecentTicket(ticketData);
-              
-              if (ticketData.status === 'WAITING') {
-                const { count } = await supabase
-                  .from('queue_tickets')
-                  .select('*', { count: 'exact', head: true })
-                  .eq('status', 'WAITING')
-                  .eq('branch_id', ticketData.branch_id)
-                  .lt('joined_at', ticketData.joined_at);
-                  
-                if (count !== null && count <= 1) { // 0 or 1 person ahead roughly means <= 7 mins
-                  setHasNotification(true);
-                  setNotificationMsg(`It's almost your turn at ${ticketData.branch.bank_name}! You are less than 5 minutes away.`);
-                } else {
-                  setHasNotification(false);
-                }
+            if (ticketData.status === 'WAITING') {
+              const { count } = await supabase
+                .from('queue_tickets')
+                .select('*', { count: 'exact', head: true })
+                .eq('status', 'WAITING')
+                .eq('branch_id', ticketData.branch_id)
+                .lt('joined_at', ticketData.joined_at);
+                
+              if (count !== null && count <= 1) { // 0 or 1 person ahead
+                setHasNotification(true);
+                setNotificationMsg(`It's almost your turn at ${ticketData.branch.bank_name}! You are less than 5 minutes away.`);
               } else {
                 setHasNotification(false);
               }
+            } else {
+              setHasNotification(false);
             }
-          };
-
-          await fetchRecentTicket();
-
-          // Subscribe to realtime updates for this user's tickets
-          channel = supabase
-            .channel('home_recent_ticket')
-            .on(
-              'postgres_changes',
-              { event: '*', schema: 'public', table: 'queue_tickets', filter: `user_id=eq.${user.id}` },
-              () => {
-                fetchRecentTicket();
-              }
-            )
-            .subscribe();
-
-        } else {
-          const storedName = await AsyncStorage.getItem('userFullName');
-          if (storedName) {
-            setUserName(storedName.split(' ')[0]);
           }
-        }
-      } catch(e) {
-        // ignore
-      }
+        };
 
-      // 2. Fetch Location
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission Refused', 'Nearby branches cannot be shown without location access.');
-        setAddress('Location Permission Denied');
-        return;
+        await fetchRecentTicket();
+      } else {
+        const storedName = await AsyncStorage.getItem('userFullName');
+        if (storedName) {
+          setUserName(storedName.split(' ')[0]);
+        }
       }
-      
-      try {
+    } catch(e) {
+      // ignore
+    }
+
+    // 2. Fetch Location
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === 'granted') {
         let loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
         setUserGeoLocation(loc);
         
@@ -124,20 +105,46 @@ export default function HomeScreen({ navigation }: any) {
         if (reverseGeocode.length > 0) {
           const pl = reverseGeocode[0];
           setAddress(`${pl.city || pl.subregion || pl.district}, ${pl.country || 'Zimbabwe'}`);
-        } else {
-          setAddress('Location Found');
         }
-      } catch (e) {
-        setAddress('Location Unavailable');
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  }, [loadData]);
+
+  useEffect(() => {
+    let channel: any;
+
+    const init = async () => {
+      await loadData();
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        channel = supabase
+          .channel('home_recent_ticket')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'queue_tickets', filter: `user_id=eq.${user.id}` },
+            () => {
+              loadData();
+            }
+          )
+          .subscribe();
       }
     };
 
-    loadData();
+    init();
 
     return () => {
       if (channel) supabase.removeChannel(channel);
     };
-  }, [isFocused]);
+  }, [isFocused, loadData]);
 
   const handleSearchLocation = async () => {
     if (!searchQuery.trim()) {
@@ -224,7 +231,18 @@ export default function HomeScreen({ navigation }: any) {
         </MotiView>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        contentContainerStyle={styles.scroll} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh} 
+            colors={[colors.primary]} 
+            tintColor={colors.primary} 
+          />
+        }
+      >
         
         {/* Banner Image */}
         <MotiView 

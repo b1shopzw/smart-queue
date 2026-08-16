@@ -27,6 +27,12 @@
     },
     "web": {
       "favicon": "./assets/splash.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "8f8c4d52-3400-40da-922f-21b0018d5434"
+      }
+    },
+    "owner": "bishop02"
   }
 }

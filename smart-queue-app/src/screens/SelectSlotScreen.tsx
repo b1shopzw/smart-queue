@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Alert, FlatList } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Alert, FlatList, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import GlassCard from '../components/GlassCard';
 import PrimaryButton from '../components/PrimaryButton';
@@ -114,6 +114,7 @@ export default function SelectSlotScreen({ route, navigation }: any) {
   const [selectedDate, setSelectedDate] = useState<Date>(getInitialDate());
   const [isJoining, setIsJoining] = useState(false);
   const [slotCapacities, setSlotCapacities] = useState<Record<string, number>>({});
+  const [refreshing, setRefreshing] = useState(false);
   
   let availableTimeSlots: string[] = [];
   if (selectedDate.getDay() === 6) { // Saturday
@@ -156,6 +157,34 @@ export default function SelectSlotScreen({ route, navigation }: any) {
     };
     
     fetchCapacities();
+  }, [branchId, selectedDate]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    // Re-fetch slot capacities
+    if (!branchId) { setRefreshing(false); return; }
+    const targetDate = new Date(selectedDate);
+    targetDate.setHours(0, 0, 0, 0);
+    const nextDay = new Date(targetDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const { data } = await supabase
+      .from('queue_tickets')
+      .select('service_type')
+      .eq('branch_id', branchId)
+      .gte('joined_at', targetDate.toISOString())
+      .lt('joined_at', nextDay.toISOString())
+      .in('status', ['WAITING', 'PROCESSING', 'PAUSED']);
+    if (data) {
+      const counts: Record<string, number> = {};
+      data.forEach(t => {
+        if (t.service_type) {
+          const match = t.service_type.match(/Slot:\s*(\d{2}:\d{2})/);
+          if (match && match[1]) { counts[match[1]] = (counts[match[1]] || 0) + 1; }
+        }
+      });
+      setSlotCapacities(counts);
+    }
+    setRefreshing(false);
   }, [branchId, selectedDate]);
 
   const handleJoinQueue = async () => {
@@ -229,25 +258,37 @@ export default function SelectSlotScreen({ route, navigation }: any) {
         console.log('Backend Insert success! Attempting to navigate...');
         navigation.navigate('Queue', { bankName: bankName, ticketInfo: ticketData });
       } catch (backendError: any) {
-        console.error('Backend Join Queue Error:', backendError);
-        Alert.alert('Error', 'Failed to join the queue. Please check your connection and try again.');
+        console.warn('Backend Join Queue Error, falling back to direct Supabase insert:', backendError);
+        
+        const prefix = serviceType.charAt(0).toUpperCase();
+        const formattedTicketNum = `${prefix}${String(ticketNum).padStart(3, '0')}`;
+
+        const { data: dbInsert, error: dbError } = await supabase
+          .from('queue_tickets')
+          .insert({
+            branch_id: branchId,
+            user_id: user.id,
+            service_type: serviceType,
+            priority_level: 'Standard',
+            ticket_number: formattedTicketNum,
+            status: 'WAITING',
+            joined_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+
+        if (dbError) {
+          console.error('Supabase direct insert error:', dbError);
+          Alert.alert('Error', dbError.message || 'Failed to join the queue. Please check your connection.');
+        } else {
+          console.log('Supabase Direct Insert success! Navigating...');
+          navigation.navigate('Queue', { bankName: bankName, ticketInfo: dbInsert });
+        }
       }
       
     } catch(err: any) {
       console.error('Join Queue Error:', err);
-      // Fallback for testing UI on catch
-      navigation.navigate('Queue', { 
-        bankName: bankName, 
-        ticketInfo: {
-          id: 'mock-ticket-id-catch',
-          branch_id: branchId,
-          user_id: 'mock-user',
-          ticket_number: '99',
-          service_type: `Slot: ${selectedSlot}`,
-          joined_at: new Date().toISOString(),
-          status: 'WAITING'
-        } 
-      });
+      Alert.alert('Error', err.message || 'An unexpected error occurred.');
     } finally {
       setIsJoining(false);
     }
@@ -262,7 +303,17 @@ export default function SelectSlotScreen({ route, navigation }: any) {
         <Text style={styles.headerTitle}>Select Time Slot</Text>
       </View>
       
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
+      >
         <Text style={styles.bankName}>{bankName}</Text>
         
         <GlassCard style={styles.card}>

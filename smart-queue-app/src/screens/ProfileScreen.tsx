@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MotiView } from 'moti';
@@ -14,53 +14,49 @@ export default function ProfileScreen({ navigation }: any) {
     phone: 'fetching...',
     id: 'fetching...'
   });
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchUser = useCallback(async () => {
+    try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (authUser) {
+        const metaName = authUser.user_metadata?.full_name || authUser.user_metadata?.name;
+        let fetchedName = metaName || 'Guest User';
+        let fetchedPhone = 'No phone linked';
+        let fetchedId = 'No ID linked';
+        try {
+          const { data, error } = await supabase
+            .from('app_users')
+            .select('*')
+            .eq('id', authUser.id)
+            .single();
+          if (data && !error) {
+            if (data.full_name) fetchedName = data.full_name;
+            if (data.phone_number) fetchedPhone = data.phone_number;
+            if (data.national_id) fetchedId = data.national_id;
+          }
+        } catch(e) {}
+        setUser({ name: fetchedName, phone: fetchedPhone, id: fetchedId });
+        return;
+      }
+      const name = await AsyncStorage.getItem('userFullName') || 'Guest User';
+      const phone = await AsyncStorage.getItem('userPhone') || 'No phone linked';
+      const id = await AsyncStorage.getItem('userNationalId') || 'No ID linked';
+      setUser({ name, phone, id });
+    } catch (e) {
+      console.warn('Error fetching profile data', e);
+    }
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchUser();
+    setRefreshing(false);
+  }, [fetchUser]);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        
-        if (authUser) {
-          // Use user metadata for name if available, then fetch other details
-          const metaName = authUser.user_metadata?.full_name || authUser.user_metadata?.name;
-          
-          let fetchedName = metaName || 'Guest User';
-          let fetchedPhone = 'No phone linked';
-          let fetchedId = 'No ID linked';
-
-          try {
-            const { data, error } = await supabase
-              .from('app_users')
-              .select('*')
-              .eq('id', authUser.id)
-              .single();
-
-            if (data && !error) {
-              if (data.full_name) fetchedName = data.full_name;
-              if (data.phone_number) fetchedPhone = data.phone_number;
-              if (data.national_id) fetchedId = data.national_id;
-            }
-          } catch(e) {}
-
-          setUser({
-            name: fetchedName,
-            phone: fetchedPhone,
-            id: fetchedId
-          });
-          return;
-        }
-        
-        const name = await AsyncStorage.getItem('userFullName') || 'Guest User';
-        const phone = await AsyncStorage.getItem('userPhone') || 'No phone linked';
-        const id = await AsyncStorage.getItem('userNationalId') || 'No ID linked';
-        setUser({ name, phone, id });
-
-      } catch (e) {
-        console.warn('Error fetching profile data', e);
-      }
-    };
     fetchUser();
-  }, []);
+  }, [fetchUser]);
 
   const menuItems = useMemo(() => [
     { title: 'Personal Information', icon: 'person-outline', route: 'ProfileMain' },
@@ -136,6 +132,14 @@ export default function ProfileScreen({ navigation }: any) {
         initialNumToRender={6}
         windowSize={5}
         removeClippedSubviews={true}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
       />
     </SafeAreaView>
   );

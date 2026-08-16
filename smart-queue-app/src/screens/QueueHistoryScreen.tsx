@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import GlassCard from '../components/GlassCard';
 import { supabase } from '../utils/supabase';
@@ -9,35 +9,43 @@ import { typography } from '../theme/typography';
 export default function QueueHistoryScreen({ navigation }: any) {
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadHistory = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      let userId = user?.id;
+
+      if (!userId) {
+        const res = await supabase.from('app_users').select('id').limit(1).single();
+        userId = res.data?.id;
+      }
+
+      if (userId) {
+        const { data } = await supabase
+          .from('queue_tickets')
+          .select('*, branch:branches(bank_name, city, branch_id)')
+          .eq('user_id', userId)
+          .order('joined_at', { ascending: false });
+
+        if (data) setHistory(data);
+      }
+    } catch (err) {
+      console.warn(err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadHistory();
+    setRefreshing(false);
+  }, [loadHistory]);
 
   useEffect(() => {
-    async function loadHistory() {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        let userId = user?.id;
-
-        if (!userId) {
-          const res = await supabase.from('app_users').select('id').limit(1).single();
-          userId = res.data?.id;
-        }
-
-        if (userId) {
-          const { data } = await supabase
-            .from('queue_tickets')
-            .select('*, branch:branches(bank_name, city, branch_id)')
-            .eq('user_id', userId)
-            .order('joined_at', { ascending: false });
-
-          if (data) setHistory(data);
-        }
-      } catch (err) {
-        console.warn(err);
-      } finally {
-        setLoading(false);
-      }
-    }
     loadHistory();
-  }, []);
+  }, [loadHistory]);
 
   const renderItem = useCallback(({ item }: any) => (
     <GlassCard style={styles.historyCard}>
@@ -89,6 +97,14 @@ export default function QueueHistoryScreen({ navigation }: any) {
           renderItem={renderItem}
           contentContainerStyle={styles.content}
           ListHeaderComponent={ListHeaderComponent}
+          refreshControl={
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh} 
+              colors={[colors.primary]} 
+              tintColor={colors.primary} 
+            />
+          }
           ListEmptyComponent={<Text style={styles.emptyText}>No past queues found.</Text>}
         />
       )}

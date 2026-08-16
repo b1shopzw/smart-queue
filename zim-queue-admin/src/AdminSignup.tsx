@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, User, Building2, MapPin } from 'lucide-react';
+import { Mail, Lock, User, Building2, MapPin, Eye, EyeOff } from 'lucide-react';
 import { supabase } from './utils/supabase';
 
 const BANK_BRANCHES = [
@@ -140,6 +140,7 @@ const REGISTRY_BRANCHES = [
 
 export default function AdminSignup() {
   const [service, setService] = useState('passport');
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -158,7 +159,7 @@ export default function AdminSignup() {
       const randomNum = Math.floor(1000 + Math.random() * 9000);
       const employee_id = `${prefix}${randomNum}`;
 
-      const { data: result, error } = await supabase
+      const { error } = await supabase
         .from('employees')
         .insert([
           {
@@ -179,7 +180,7 @@ export default function AdminSignup() {
   return (
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'var(--color-background)',padding:'24px'}}>
       <motion.div 
-        initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} transition={{type:'spring', damping:25}}
+        initial={{opacity:0, y:-20}} animate={{opacity:1, y:0}} transition={{type:'spring' as const, damping:25}}
         style={{width:'100%',maxWidth:'480px',background:'var(--color-panel)',padding:'32px',borderRadius:'16px',boxShadow:'var(--shadow-lg)',border:'1px solid var(--color-border)'}}
       >
         <div style={{display:'flex',justifyContent:'center',marginBottom:'20px'}}>
@@ -265,7 +266,15 @@ export default function AdminSignup() {
             <label style={{display:'block',fontSize:'12px',fontWeight:600,color:'var(--color-foreground)',marginBottom:'8px'}}>Access Password</label>
             <div style={{position:'relative'}}>
               <Lock style={{position:'absolute',left:'14px',top:'12px',color:'var(--color-foreground-muted)'}} size={18} />
-              <input name="password" required type="password" placeholder="••••••••" style={{width:'100%',padding:'12px 14px 12px 42px',background:'var(--color-background)',border:'1px solid var(--color-border)',borderRadius:'8px',color:'var(--color-foreground)',fontSize:'13px'}} />
+              <input name="password" required type={showPassword ? "text" : "password"} placeholder="••••••••" style={{width:'100%',padding:'12px 42px 12px 42px',background:'var(--color-background)',border:'1px solid var(--color-border)',borderRadius:'8px',color:'var(--color-foreground)',fontSize:'13px'}} />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? "Hide password" : "Show password"}
+                style={{position:'absolute',right:'14px',top:'12px',background:'none',border:'none',color:'var(--color-foreground-muted)',cursor:'pointer',padding:0,display:'flex',alignItems:'center'}}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
 

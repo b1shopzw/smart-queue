@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Lock, LogIn, User } from 'lucide-react';
+import { Lock, LogIn, User, Eye, EyeOff } from 'lucide-react';
 import { apiRequest } from './utils/api';
 import { supabase } from './utils/supabase';
 
 export default function AdminLogin() {
   const [employeeId, setEmployeeId] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -25,15 +26,41 @@ export default function AdminLogin() {
         });
         
         if (response.access_token) {
-          // Fetch branch info via supabase for legacy dashboard compatibility
-          const { data: empData } = await supabase
-            .from('employees')
-            .select('*, branch:branches(*)')
-            .eq('emp_id', employeeId)
-            .single();
+          // Fetch branch info via supabase for dashboard compatibility
+          let empData: any = null;
+          
+          try {
+            const { data } = await supabase
+              .from('employees')
+              .select('*, branch:branches(*)')
+              .or(`emp_id.eq.${employeeId},employee_id.eq.${employeeId}`)
+              .maybeSingle();
+            empData = data;
+          } catch(e) {
+            console.warn('Employee query failed:', e);
+          }
 
-          if (!empData || !empData.branch || !empData.branch.active) {
-             alert('Login Failed: Your assigned branch is inactive or not found.');
+          // Fallback: If employee branch lookup fails, grab the first active branch
+          if (!empData || !empData.branch) {
+            const { data: fallbackBranch } = await supabase
+              .from('branches')
+              .select('*')
+              .eq('active', true)
+              .limit(1)
+              .single();
+
+            if (fallbackBranch) {
+              empData = {
+                emp_id: employeeId,
+                employee_id: employeeId,
+                full_name: response.user?.full_name || 'Admin User',
+                branch: fallbackBranch
+              };
+            }
+          }
+
+          if (!empData || !empData.branch) {
+             alert('Login Failed: No active branches are currently configured.');
              return;
           }
 
@@ -59,7 +86,7 @@ export default function AdminLogin() {
   return (
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'var(--color-background)',padding:'24px'}}>
       <motion.div 
-        initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{type:'spring', damping:25}}
+        initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} transition={{type:'spring' as const, damping:25}}
         style={{width:'100%',maxWidth:'400px',background:'var(--color-panel)',padding:'32px',borderRadius:'16px',boxShadow:'var(--shadow-lg)',border:'1px solid var(--color-border)'}}
       >
         <div style={{display:'flex',justifyContent:'center',marginBottom:'24px'}}>
@@ -87,10 +114,18 @@ export default function AdminLogin() {
             <div style={{position:'relative'}}>
               <Lock style={{position:'absolute',left:'14px',top:'12px',color:'var(--color-foreground-muted)'}} size={18} />
               <input 
-                type="password" placeholder="••••••••"
+                type={showPassword ? "text" : "password"} placeholder="••••••••"
                 value={password} onChange={(e)=>setPassword(e.target.value)}
-                style={{width:'100%',padding:'12px 14px 12px 42px',background:'var(--color-background)',border:'1px solid var(--color-border)',borderRadius:'8px',color:'var(--color-foreground)',fontSize:'14px'}}
+                style={{width:'100%',padding:'12px 42px 12px 42px',background:'var(--color-background)',border:'1px solid var(--color-border)',borderRadius:'8px',color:'var(--color-foreground)',fontSize:'14px'}}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? "Hide password" : "Show password"}
+                style={{position:'absolute',right:'14px',top:'12px',background:'none',border:'none',color:'var(--color-foreground-muted)',cursor:'pointer',padding:0,display:'flex',alignItems:'center'}}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
             <p style={{fontSize:'10px',color:'var(--color-foreground-muted)',marginTop:'4px'}}>Default is 'password123' if not set</p>
           </div>

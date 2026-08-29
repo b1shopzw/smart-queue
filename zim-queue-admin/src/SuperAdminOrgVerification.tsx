@@ -32,6 +32,17 @@ export default function SuperAdminOrgVerification() {
 
   useEffect(() => {
     fetchOrganizations();
+
+    const channel = supabase
+      .channel('realtime_superadmin_orgs')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'organizations' }, () => {
+        fetchOrganizations();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [fetchOrganizations]);
 
   const handleApprove = async (org: any) => {

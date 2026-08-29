@@ -40,7 +40,18 @@ export default function OrgBranchManager({ orgId }: OrgBranchManagerProps) {
 
   useEffect(() => {
     fetchOrgBranches();
-  }, [fetchOrgBranches]);
+
+    const channel = supabase
+      .channel(`realtime_org_branches_${orgId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'branches', filter: `org_id=eq.${orgId}` }, () => {
+        fetchOrgBranches();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchOrgBranches, orgId]);
 
   const handleCreateBranch = async (e: React.FormEvent) => {
     e.preventDefault();

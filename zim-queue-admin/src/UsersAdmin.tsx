@@ -11,6 +11,20 @@ export default function UsersAdmin() {
 
   useEffect(() => {
     fetchAllAccounts();
+
+    const channel = supabase
+      .channel('realtime_users_directory')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'employees' }, () => {
+        fetchAllAccounts();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_users' }, () => {
+        fetchAllAccounts();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchAllAccounts = async () => {

@@ -17,6 +17,17 @@ export default function BranchSettingsAdmin({ branchId }: { branchId: string }) 
       setLoading(false);
     }
     loadBranch();
+
+    const channel = supabase
+      .channel(`realtime_settings_${branchId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'branches', filter: `branch_id=eq.${branchId}` }, () => {
+        loadBranch();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [branchId]);
 
   const handleChange = (e: any) => {

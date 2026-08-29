@@ -17,6 +17,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import QueueHistoryScreen from '../screens/QueueHistoryScreen';
 import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
 import FeedbackScreen from '../screens/FeedbackScreen';
+import BranchMapScreen from '../screens/BranchMapScreen';
 
 const RootStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -43,6 +44,7 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="HomeMain" component={HomeScreen} />
       <HomeStack.Screen name="BanksList" component={BanksListScreen} />
       <HomeStack.Screen name="BranchDetail" component={BranchDetailScreen} />
+      <HomeStack.Screen name="BranchMap" component={BranchMapScreen} />
       <HomeStack.Screen name="SelectSlot" component={SelectSlotScreen} />
       <HomeStack.Screen name="Queue" component={QueueScreen} />
       <HomeStack.Screen name="Feedback" component={FeedbackScreen} />

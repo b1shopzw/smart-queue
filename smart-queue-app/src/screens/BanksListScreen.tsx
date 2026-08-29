@@ -63,7 +63,16 @@ export default function BanksListScreen({ route, navigation }: any) {
 
       const { data: dbBranches, error } = await supabase
         .from('branches')
-        .select('*')
+        .select(`
+          id:branch_id,
+          name:bank_name,
+          city,
+          suburb,
+          branch_num,
+          type:institution_type,
+          latitude:lat,
+          longitude:lng
+        `)
         .eq('institution_type', mappedServiceType)
         .eq('active', true);
 
@@ -71,7 +80,7 @@ export default function BanksListScreen({ route, navigation }: any) {
 
       let fetchedItems: any[] = [];
       if (dbBranches && dbBranches.length > 0) {
-        const branchIds = dbBranches.map((b: any) => b.branch_id);
+        const branchIds = dbBranches.map((b: any) => b.id);
         const { data: ticketsData } = await supabase
           .from('queue_tickets')
           .select('branch_id')
@@ -86,12 +95,12 @@ export default function BanksListScreen({ route, navigation }: any) {
         }
 
         fetchedItems = dbBranches.map((b: any) => {
-          const qLen = queueCounts[b.branch_id] || 0;
+          const qLen = queueCounts[b.id] || 0;
           return {
-            id: b.branch_id,
-            name: `${b.bank_name} — ${b.city} (${b.suburb}, Branch ${b.branch_num})`,
-            lat: b.lat,
-            lon: b.lng,
+            id: b.id,
+            name: `${b.name} — ${b.city} (${b.suburb}, Branch ${b.branch_num})`,
+            lat: b.latitude,
+            lon: b.longitude,
             queueLength: qLen,
             waitTime: qLen * 5
           };

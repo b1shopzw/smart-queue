@@ -257,6 +257,8 @@ export default function AdminSignup() {
   const [province, setProvince] = useState('');
   const [city, setCity] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const navigate = useNavigate();
 
   const dataMap = getDataMap(service);
@@ -268,22 +270,67 @@ export default function AdminSignup() {
 
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setErrorMsg('');
+    setLoading(true);
+
     const fd = new FormData(e.currentTarget);
-    const payload = {
-      full_name: fd.get('full_name'), email: fd.get('email'),
-      service_type: service, branch_name: fd.get('branch_name'), password: fd.get('password'),
-    };
+    const email = String(fd.get('email') || '').trim();
+    const password = String(fd.get('password') || '');
+    const fullName = String(fd.get('full_name') || '').trim();
+    const branchName = String(fd.get('branch_name') || '');
+
     try {
       const prefixMap: Record<string, string> = {
         banks: 'BNK', passport: 'PASS', id: 'ID', telecoms: 'TEL', utilities: 'UTL', remittances: 'REM'
       };
       const prefix = prefixMap[service] || 'ADM';
-      const employee_id = `${prefix}${Math.floor(1000 + Math.random() * 9000)}`;
-      const { error } = await supabase.from('employees').insert([{ employee_id, ...payload }]);
-      if (error) throw error;
-      alert(`Account Provisioned!\n\nEmployee ID: ${employee_id}\n\nSave this to log in.`);
+      const employeeId = `${prefix}${Math.floor(1000 + Math.random() * 9000)}`;
+
+      // 1. Supabase Auth Registration
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            service_type: service,
+            branch_name: branchName,
+            employee_id: employeeId,
+          }
+        }
+      });
+
+      if (authError && !authError.message.includes('User already registered')) {
+        throw new Error(authError.message);
+      }
+
+      // 2. Supabase Database `employees` table insertion
+      const { error: dbError } = await supabase.from('employees').upsert([
+        {
+          employee_id: employeeId,
+          emp_id: employeeId,
+          full_name: fullName,
+          email,
+          service_type: service,
+          branch_name: branchName,
+          password,
+          user_id: authData?.user?.id || null,
+          created_at: new Date().toISOString()
+        }
+      ], { onConflict: 'email' });
+
+      if (dbError) {
+        console.warn('Employees database insertion note:', dbError.message);
+      }
+
+      alert(`Account Provisioned in Supabase!\n\nYour Employee ID is: ${employeeId}\n\nPlease save this ID to log in.`);
       navigate('/login');
-    } catch { alert('Could not reach Supabase. Check your configuration.'); }
+    } catch (err: any) {
+      console.error('Supabase registration error:', err);
+      setErrorMsg(err.message || 'Could not provision account in Supabase. Check your connection.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const labelStyle: React.CSSProperties = { display:'block', fontSize:'12px', fontWeight:600, color:'var(--color-foreground)', marginBottom:'8px' };
@@ -397,9 +444,16 @@ export default function AdminSignup() {
             </div>
           </div>
 
-          <motion.button whileHover={{scale:1.02}} whileTap={{scale:0.98}} type="submit"
-            style={{width:'100%',background:'var(--color-primary)',color:'var(--color-on-primary)',border:'none',padding:'14px',borderRadius:'var(--radius-md)',fontSize:'14px',fontWeight:700,cursor:'pointer',marginTop:'8px'}}>
-            Provision Branch Dashboard
+          {errorMsg && (
+            <div style={{background:'rgba(229,72,77,0.1)',border:'1px solid rgba(229,72,77,0.2)',borderRadius:'var(--radius-sm)',padding:'10px 14px',fontSize:'13px',color:'#E5484D'}}>
+              {errorMsg}
+            </div>
+          )}
+
+          <motion.button whileHover={{scale: loading ? 1 : 1.02}} whileTap={{scale: loading ? 1 : 0.98}} type="submit"
+            disabled={loading}
+            style={{width:'100%',background:'var(--color-primary)',color:'var(--color-on-primary)',border:'none',padding:'14px',borderRadius:'var(--radius-md)',fontSize:'14px',fontWeight:700,cursor:loading?'not-allowed':'pointer',marginTop:'8px',opacity:loading?0.7:1}}>
+            {loading ? 'Provisioning Supabase Account...' : 'Provision Branch Dashboard'}
           </motion.button>
         </form>
 

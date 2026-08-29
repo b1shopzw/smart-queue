@@ -104,9 +104,9 @@ export default function NationalIDDashboard({ ctx }: { ctx: any }) {
         initial="hidden"
         animate="visible"
       >
-        {activeTab === 'Queue' && <LiveQueueAdmin ctx={ctx} />}
-        {activeTab === 'Analytics' && <AnalyticsAdmin ctx={ctx} />}
-        {activeTab === 'Branches' && <OrgBranchManager orgId={ctx.emp?.org_id || ''} orgName={ctx.branch?.bank_name || ctx.emp?.name || 'Branch'} />}
+        {activeTab === 'Queue' && <LiveQueueAdmin branchId={ctx.branch?.branch_id || ''} />}
+        {activeTab === 'Analytics' && <AnalyticsAdmin branchId={ctx.branch?.branch_id || ''} />}
+        {activeTab === 'Branches' && <OrgBranchManager orgId={ctx.emp?.org_id || ''} />}
         {activeTab === 'Staff' && (
           <div style={{padding:32}}>
             <div style={{marginBottom:20,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
@@ -119,21 +119,20 @@ export default function NationalIDDashboard({ ctx }: { ctx: any }) {
                 + Invite Staff Member
               </motion.button>
             </div>
-            {showInviteModal && (
-              <OrgStaffInviteModal
-                orgId={ctx.emp?.org_id || ''}
-                orgName={ctx.branch?.bank_name || ctx.emp?.name || 'Branch'}
-                onClose={() => setShowInviteModal(false)}
-              />
-            )}
+            <OrgStaffInviteModal
+              orgId={ctx.emp?.org_id || ''}
+              isOpen={showInviteModal}
+              onClose={() => setShowInviteModal(false)}
+            />
           </div>
         )}
-        {activeTab === 'Users' && <UsersAdmin ctx={ctx} />}
-        {activeTab === 'Feedback' && <UserFeedbackAdmin ctx={ctx} />}
-        {activeTab === 'Reports' && <ReportsAdmin ctx={ctx} />}
-        {activeTab === 'Settings' && <BranchSettingsAdmin ctx={ctx} />}
+        {activeTab === 'Users' && <UsersAdmin />}
+        {activeTab === 'Feedback' && <UserFeedbackAdmin branchId={ctx.branch?.branch_id || ''} />}
+        {activeTab === 'Reports' && <ReportsAdmin branchId={ctx.branch?.branch_id || ''} />}
+        {activeTab === 'Settings' && <BranchSettingsAdmin branchId={ctx.branch?.branch_id || ''} />}
 
         {activeTab === 'Overview' && <>
+        <motion.div variants={itemVariants} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginBottom:'24px'}}>
           <div>
             <div style={{fontSize:'26px',fontWeight:700,color:'var(--color-foreground)',fontFamily:'"Fira Code", monospace'}}>Good morning, {ctx.emp.name?.split(' ')[0] || 'Admin'}</div>
             <div style={{fontSize:'14px',color:'var(--color-foreground-muted)',marginTop:'4px'}}>Role: {ctx.role} | Here's what's happening today</div>
@@ -145,8 +144,6 @@ export default function NationalIDDashboard({ ctx }: { ctx: any }) {
             <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="action-btn">Export PDF</motion.button>
           </div>
         </motion.div>
-
-
 
         <motion.div variants={itemVariants} className="stat6">
           <motion.div whileHover={{ y: -4 }} className="stat-box"><div className="lbl">Waiting now</div><motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="num">1,204</motion.div><div className="trend" style={{color:'#d97706'}}>+84 last 30 min</div></motion.div>

@@ -140,7 +140,7 @@ export default function BankDashboard({ ctx }: { ctx: any }) {
           </motion.div>
         ) : activeTab === 'Branches' ? (
           <motion.div variants={itemVariants}>
-            <OrgBranchManager orgId={ctx.emp?.org_id || ''} orgName={ctx.branch?.bank_name || ctx.emp?.name || 'Branch'} />
+            <OrgBranchManager orgId={ctx.emp?.org_id || ''} />
           </motion.div>
         ) : activeTab === 'Staff' ? (
           <motion.div variants={itemVariants}>
@@ -155,13 +155,11 @@ export default function BankDashboard({ ctx }: { ctx: any }) {
                   + Invite Staff Member
                 </motion.button>
               </div>
-              {showInviteModal && (
-                <OrgStaffInviteModal
-                  orgId={ctx.emp?.org_id || ''}
-                  orgName={ctx.branch?.bank_name || ctx.emp?.name || 'Branch'}
-                  onClose={() => setShowInviteModal(false)}
-                />
-              )}
+              <OrgStaffInviteModal
+                orgId={ctx.emp?.org_id || ''}
+                isOpen={showInviteModal}
+                onClose={() => setShowInviteModal(false)}
+              />
             </div>
           </motion.div>
         ) : (

@@ -104,28 +104,28 @@ export default function Dashboard({ ctx }: { ctx: any }) {
         animate="visible"
       >
         {/* ── Queue Tab ── */}
-        {activeTab === 'Queue' && <LiveQueueAdmin ctx={ctx} />}
+        {activeTab === 'Queue' && <LiveQueueAdmin branchId={ctx.branch?.branch_id || ''} />}
 
         {/* ── Analytics Tab ── */}
-        {activeTab === 'Analytics' && <AnalyticsAdmin ctx={ctx} />}
+        {activeTab === 'Analytics' && <AnalyticsAdmin branchId={ctx.branch?.branch_id || ''} />}
 
         {/* ── Organizations Tab ── */}
         {activeTab === 'Organizations' && <SuperAdminOrgVerification />}
 
         {/* ── Branches Tab ── */}
-        {activeTab === 'Branches' && <OrgBranchManager orgId={ctx.emp?.org_id || ''} orgName={ctx.emp?.name || 'Platform'} />}
+        {activeTab === 'Branches' && <OrgBranchManager orgId={ctx.emp?.org_id || ''} />}
 
         {/* ── Users Tab ── */}
-        {activeTab === 'Users' && <UsersAdmin ctx={ctx} />}
+        {activeTab === 'Users' && <UsersAdmin />}
 
         {/* ── Feedback Tab ── */}
-        {activeTab === 'Feedback' && <UserFeedbackAdmin ctx={ctx} />}
+        {activeTab === 'Feedback' && <UserFeedbackAdmin branchId={ctx.branch?.branch_id || ''} />}
 
         {/* ── Reports Tab ── */}
-        {activeTab === 'Reports' && <ReportsAdmin ctx={ctx} />}
+        {activeTab === 'Reports' && <ReportsAdmin branchId={ctx.branch?.branch_id || ''} />}
 
         {/* ── Settings Tab ── */}
-        {activeTab === 'Settings' && <BranchSettingsAdmin ctx={ctx} />}
+        {activeTab === 'Settings' && <BranchSettingsAdmin branchId={ctx.branch?.branch_id || ''} />}
 
         {/* ── Overview Tab (default) ── */}
         {activeTab === 'Overview' && <>

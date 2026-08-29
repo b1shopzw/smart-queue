@@ -139,6 +139,35 @@ export default function AdminLogin() {
           </motion.button>
         </form>
 
+        <div style={{marginTop:'24px',textAlign:'center',fontSize:'13px',color:'var(--color-foreground-muted)'}}>
+          New branch administrator?{' '}
+          <a href="/signup" style={{color:'var(--color-primary)',fontWeight:700,textDecoration:'none'}}>
+            Register here
+          </a>
+        </div>
+
+        <div style={{marginTop:'16px',display:'flex',justifyContent:'center'}}>
+          <motion.a
+            href="/signup"
+            whileHover={{scale:1.02}} whileTap={{scale:0.98}}
+            style={{
+              display:'flex',alignItems:'center',gap:'8px',
+              width:'100%',justifyContent:'center',
+              background:'transparent',
+              border:'1px solid var(--color-border)',
+              color:'var(--color-foreground)',
+              padding:'12px',borderRadius:'8px',
+              fontSize:'14px',fontWeight:600,cursor:'pointer',
+              textDecoration:'none',
+              transition:'border-color 0.2s'
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
+            onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--color-border)')}
+          >
+            <UserPlus size={18} />
+            Register as Branch Admin
+          </motion.a>
+        </div>
 
       </motion.div>
     </div>

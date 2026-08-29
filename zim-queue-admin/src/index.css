@@ -1,57 +1,61 @@
-/* ── Geist / Vercel Design System ─────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
+/* ── Vercel / Supabase Design System ───────────────────────────────── */
 :root {
-  /* Neutrals — Vercel palette */
-  --color-background:      #fafafa;
-  --color-panel:           #ffffff;
-  --color-panel-hover:     #f4f4f5;
-  --color-border:          #e4e4e7;
-  --color-border-strong:   #d4d4d8;
+  /* Core Visual DNA Colors */
+  --color-background:      #0A0A0A;
+  --color-panel:           #111111;
+  --color-panel-hover:     #161616;
+  --color-border:          rgba(255, 255, 255, 0.08);
+  --color-border-hover:    rgba(255, 255, 255, 0.14);
+  --color-border-strong:   rgba(255, 255, 255, 0.20);
 
   /* Foreground */
-  --color-foreground:      #09090b;
-  --color-foreground-muted:#71717a;
-  --color-foreground-dim:  #a1a1aa;
+  --color-foreground:      #EDEDED;
+  --color-foreground-muted:#888888;
+  --color-foreground-dim:  #555555;
 
-  /* Accent — Vercel blue */
-  --color-primary:         #0070f3;
-  --color-primary-hover:   #0060df;
-  --color-primary-light:   rgba(0,112,243,0.08);
-  --color-on-primary:      #ffffff;
+  /* Accent — Supabase signature green */
+  --color-primary:         #3ECF8E;
+  --color-primary-hover:   #34B27B;
+  --color-primary-light:   rgba(62, 207, 142, 0.10);
+  --color-primary-border:  rgba(62, 207, 142, 0.20);
+  --color-on-primary:      #0A0A0A;
 
-  /* Status */
-  --color-success:         #17c964;
-  --color-success-bg:      #f0fdf4;
-  --color-warning:         #f5a524;
-  --color-warning-bg:      #fffbeb;
-  --color-error:           #f31260;
-  --color-error-bg:        #fff1f2;
+  /* Status Tokens */
+  --color-success:         #3ECF8E;
+  --color-success-bg:      rgba(62, 207, 142, 0.10);
+  --color-warning:         #F5A623;
+  --color-warning-bg:      rgba(245, 166, 35, 0.10);
+  --color-error:           #E5484D;
+  --color-error-bg:        rgba(229, 72, 77, 0.10);
+  --color-info:            #0070F3;
+  --color-info-bg:         rgba(0, 112, 243, 0.10);
 
-  /* Shadows — Vercel-style subtle */
-  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.06), 0 4px 6px rgba(0,0,0,0.04);
+  /* Fonts */
+  --font-sans: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', 'Fira Code', monospace;
 
-  /* Legacy aliases for backward compat */
-  --color-muted:           #f4f4f5;
-  --color-secondary:       #0070f3;
-
-  /* Radius */
+  /* Radius (6-8px consistent everywhere) */
   --radius-sm:  6px;
   --radius-md:  8px;
   --radius-lg:  12px;
   --radius-xl:  16px;
+
+  /* Legacy compatibility aliases */
+  --color-muted:           #161616;
+  --color-secondary:       #3ECF8E;
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
 }
 
 /* ── Reset ─────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { font-size: 14px; -webkit-font-smoothing: antialiased; }
+html { font-size: 14px; -webkit-font-smoothing: antialiased; background: var(--color-background); color: var(--color-foreground); }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: var(--font-sans);
   background: var(--color-background);
   color: var(--color-foreground);
   line-height: 1.5;
@@ -62,6 +66,7 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--color-background);
 }
 
 /* ── Navigation ────────────────────────────────────────────────────── */
@@ -69,7 +74,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255,255,255,0.85);
+  background: rgba(10, 10, 10, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--color-border);
@@ -82,10 +87,10 @@ body {
 }
 
 .admin-nav .brand {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--color-foreground);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -99,12 +104,12 @@ body {
 
 .nav-links div {
   padding: 5px 12px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-size: 13px;
   font-weight: 500;
   color: var(--color-foreground-muted);
   cursor: pointer;
-  transition: color 120ms, background 120ms;
+  transition: color 150ms ease, background 150ms ease;
   user-select: none;
 }
 
@@ -116,6 +121,7 @@ body {
 .nav-links div.active {
   background: var(--color-primary-light);
   color: var(--color-primary);
+  border: 1px solid var(--color-primary-border);
   font-weight: 600;
 }
 
@@ -142,6 +148,11 @@ body {
   margin-bottom: 24px;
 }
 
+/* ── Vercel/Supabase Hero Glow ─────────────────────────────────────── */
+.hero-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(62, 207, 142, 0.15), transparent 60%);
+}
+
 /* ── Stat grid ─────────────────────────────────────────────────────── */
 .stat6 {
   display: grid;
@@ -153,17 +164,15 @@ body {
 .stat-box {
   background: var(--color-panel);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-md);
   padding: 16px 18px;
-  box-shadow: var(--shadow-xs);
-  transition: box-shadow 160ms, border-color 160ms, transform 160ms;
+  transition: border-color 150ms ease, background 150ms ease;
   cursor: pointer;
 }
 
 .stat-box:hover {
-  box-shadow: var(--shadow-md);
-  border-color: var(--color-border-strong);
-  transform: translateY(-1px);
+  border-color: var(--color-border-hover);
+  background: var(--color-panel-hover);
 }
 
 .stat-box .lbl {
@@ -175,8 +184,9 @@ body {
 }
 
 .stat-box .num {
-  font-size: 26px;
-  font-weight: 700;
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 600;
   color: var(--color-foreground);
   letter-spacing: -0.02em;
   margin: 6px 0 2px;
@@ -190,13 +200,17 @@ body {
   margin-top: 2px;
 }
 
-/* ── Panel (card) ──────────────────────────────────────────────────── */
-.panel {
+/* ── Card / Panel (Signature Vercel/Supabase Recipe) ──────────────── */
+.card, .panel {
   background: var(--color-panel);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: var(--shadow-xs);
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.card:hover, .panel:hover {
+  border-color: var(--color-border-hover);
 }
 
 .panel-head {
@@ -227,27 +241,45 @@ body {
   margin: 6px 0 8px;
 }
 
-.bar-fill { height: 100%; border-radius: 4px; }
+.bar-fill { height: 100%; border-radius: 4px; background: var(--color-primary); }
 
-/* ── Status badges ─────────────────────────────────────────────────── */
+/* ── Status badges (Supabase-style) ────────────────────────────────── */
 .badge {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   padding: 2px 8px;
-  border-radius: 20px;
+  border-radius: 9999px;
   letter-spacing: 0.02em;
 }
 
-/* Green */
-.bg { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
-/* Amber */
-.ba { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
-/* Red */
-.br { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
-/* Blue */
-.bb { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+/* Green (verified/active) */
+.bg {
+  background: rgba(62, 207, 142, 0.10);
+  color: #3ECF8E;
+  border: 1px solid rgba(62, 207, 142, 0.20);
+}
+/* Amber (pending/warning) */
+.ba {
+  background: rgba(245, 166, 35, 0.10);
+  color: #F5A623;
+  border: 1px solid rgba(245, 166, 35, 0.20);
+}
+/* Red (rejected/suspended/danger) */
+.br {
+  background: rgba(229, 72, 77, 0.10);
+  color: #E5484D;
+  border: 1px solid rgba(229, 72, 77, 0.20);
+}
+/* Blue (info/system) */
+.bb {
+  background: rgba(0, 112, 243, 0.10);
+  color: #0070F3;
+  border: 1px solid rgba(0, 112, 243, 0.20);
+}
 
 /* ── List rows ─────────────────────────────────────────────────────── */
 .list-item {
@@ -256,7 +288,7 @@ body {
   gap: 12px;
   padding: 10px 18px;
   border-bottom: 1px solid var(--color-border);
-  transition: background 100ms;
+  transition: background 150ms ease;
   cursor: pointer;
 }
 
@@ -267,52 +299,57 @@ body {
 .action-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   background: var(--color-primary);
   color: var(--color-on-primary);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 600;
-  font-family: inherit;
+  font-family: var(--font-sans);
   cursor: pointer;
-  transition: background 120ms, box-shadow 120ms, transform 80ms;
+  transition: background 150ms ease, opacity 150ms ease;
   white-space: nowrap;
 }
 
-.action-btn:hover  { background: var(--color-primary-hover); box-shadow: 0 0 0 3px rgba(0,112,243,0.2); }
-.action-btn:active { transform: scale(0.98); }
+.action-btn:hover  { background: var(--color-primary-hover); }
+.action-btn:active { opacity: 0.9; }
 
 .action-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   background: transparent;
   color: var(--color-foreground-muted);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: 7px 14px;
   font-size: 13px;
   font-weight: 500;
-  font-family: inherit;
+  font-family: var(--font-sans);
   cursor: pointer;
-  transition: background 120ms, border-color 120ms, color 120ms;
+  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 
 .action-btn-ghost:hover {
   background: var(--color-panel-hover);
-  border-color: var(--color-border-strong);
+  border-color: var(--color-border-hover);
   color: var(--color-foreground);
 }
 
 /* ── Input / Select / Textarea ─────────────────────────────────────── */
 input, select, textarea {
-  font-family: inherit;
+  font-family: var(--font-sans);
   font-size: 13px;
   color: var(--color-foreground);
   background: var(--color-panel);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: 8px 12px;
-  transition: border-color 120ms, box-shadow 120ms;
+  transition: border-color 150ms ease, background 150ms ease;
   outline: none;
   width: 100%;
 }
@@ -321,7 +358,7 @@ input::placeholder, textarea::placeholder { color: var(--color-foreground-dim); 
 
 input:focus, select:focus, textarea:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(0,112,243,0.15);
+  background: #141414;
 }
 
 /* ── Divider ───────────────────────────────────────────────────────── */
@@ -334,5 +371,6 @@ input:focus, select:focus, textarea:focus {
 /* ── Scrollbar ─────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-foreground-muted); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.25); }
+

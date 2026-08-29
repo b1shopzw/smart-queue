@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, Building2, MapPin, Eye, EyeOff, ChevronDown } from 'lucide-react';
@@ -398,7 +398,7 @@ export default function AdminSignup() {
           </div>
 
           <motion.button whileHover={{scale:1.02}} whileTap={{scale:0.98}} type="submit"
-            style={{width:'100%',background:'var(--color-primary)',color:'white',border:'none',padding:'14px',borderRadius:'8px',fontSize:'14px',fontWeight:700,cursor:'pointer',marginTop:'8px'}}>
+            style={{width:'100%',background:'var(--color-primary)',color:'var(--color-on-primary)',border:'none',padding:'14px',borderRadius:'var(--radius-md)',fontSize:'14px',fontWeight:700,cursor:'pointer',marginTop:'8px'}}>
             Provision Branch Dashboard
           </motion.button>
         </form>

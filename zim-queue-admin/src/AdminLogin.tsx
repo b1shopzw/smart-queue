@@ -133,7 +133,7 @@ export default function AdminLogin() {
           <motion.button 
             whileHover={{scale:1.02}} whileTap={{scale:0.98}} type="submit"
             disabled={loading}
-            style={{width:'100%',background:'var(--color-primary)',color:'white',border:'none',padding:'14px',borderRadius:'8px',fontSize:'14px',fontWeight:700,cursor:'pointer',marginTop:'8px',display:'flex',justifyContent:'center',alignItems:'center',gap:'8px',opacity:loading?0.7:1}}
+            style={{width:'100%',background:'var(--color-primary)',color:'var(--color-on-primary)',border:'none',padding:'14px',borderRadius:'var(--radius-md)',fontSize:'14px',fontWeight:700,cursor:'pointer',marginTop:'8px',display:'flex',justifyContent:'center',alignItems:'center',gap:'8px',opacity:loading?0.7:1}}
           >
             {loading ? 'Authenticating...' : <><LogIn size={18} /> Access Command Center</>}
           </motion.button>

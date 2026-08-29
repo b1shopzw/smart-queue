@@ -6,6 +6,8 @@ import BranchSettingsAdmin from './BranchSettingsAdmin';
 import UsersAdmin from './UsersAdmin';
 import ReportsAdmin from './ReportsAdmin';
 import UserFeedbackAdmin from './UserFeedbackAdmin';
+import OrgBranchManager from './OrgBranchManager';
+import OrgStaffInviteModal from './OrgStaffInviteModal';
 import './index.css';
 
 const containerVariants = {
@@ -27,6 +29,7 @@ const itemVariants = {
 export default function BankDashboard({ ctx }: { ctx: any }) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTab, setActiveTab] = useState('Overview');
+  const [showInviteModal, setShowInviteModal] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -53,11 +56,12 @@ export default function BankDashboard({ ctx }: { ctx: any }) {
             <div className={activeTab === 'Overview' ? 'active' : ''} onClick={() => setActiveTab('Overview')} style={{cursor:'pointer'}}>Overview</div>
             <div className={activeTab === 'Queue' ? 'active' : ''} onClick={() => setActiveTab('Queue')} style={{cursor:'pointer', color:'var(--color-primary)', fontWeight:600}}>Live Queue</div>
             <div className={activeTab === 'Analytics' ? 'active' : ''} onClick={() => setActiveTab('Analytics')} style={{cursor:'pointer'}}>Analytics</div>
+            <div className={activeTab === 'Branches' ? 'active' : ''} onClick={() => setActiveTab('Branches')} style={{cursor:'pointer'}}>Branches</div>
+            <div className={activeTab === 'Staff' ? 'active' : ''} onClick={() => setActiveTab('Staff')} style={{cursor:'pointer'}}>Staff</div>
             <div className={activeTab === 'Settings' ? 'active' : ''} onClick={() => setActiveTab('Settings')} style={{cursor:'pointer'}}>Settings</div>
             <div className={activeTab === 'Users' ? 'active' : ''} onClick={() => setActiveTab('Users')} style={{cursor:'pointer'}}>Users</div>
             <div className={activeTab === 'Feedback' ? 'active' : ''} onClick={() => setActiveTab('Feedback')} style={{cursor:'pointer'}}>Feedback</div>
             <div className={activeTab === 'Reports' ? 'active' : ''} onClick={() => setActiveTab('Reports')} style={{cursor:'pointer'}}>Reports</div>
-            <div>Staff</div>
           </div>
         </motion.div>
         
@@ -133,6 +137,32 @@ export default function BankDashboard({ ctx }: { ctx: any }) {
         ) : activeTab === 'Reports' ? (
           <motion.div variants={itemVariants}>
             <ReportsAdmin branchId={ctx.branch.branch_id} />
+          </motion.div>
+        ) : activeTab === 'Branches' ? (
+          <motion.div variants={itemVariants}>
+            <OrgBranchManager orgId={ctx.emp?.org_id || ''} orgName={ctx.branch?.bank_name || ctx.emp?.name || 'Branch'} />
+          </motion.div>
+        ) : activeTab === 'Staff' ? (
+          <motion.div variants={itemVariants}>
+            <div style={{padding:32}}>
+              <div style={{marginBottom:20,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <h2 style={{margin:0,color:'var(--color-foreground)'}}>Staff Management</h2>
+                <motion.button
+                  whileHover={{scale:1.04}} whileTap={{scale:0.97}}
+                  onClick={() => setShowInviteModal(true)}
+                  style={{background:'var(--color-primary)',color:'white',border:'none',padding:'10px 20px',borderRadius:8,fontWeight:700,cursor:'pointer',fontSize:13}}
+                >
+                  + Invite Staff Member
+                </motion.button>
+              </div>
+              {showInviteModal && (
+                <OrgStaffInviteModal
+                  orgId={ctx.emp?.org_id || ''}
+                  orgName={ctx.branch?.bank_name || ctx.emp?.name || 'Branch'}
+                  onClose={() => setShowInviteModal(false)}
+                />
+              )}
+            </div>
           </motion.div>
         ) : (
           <>

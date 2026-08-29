@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import SuperAdminOrgVerification from './SuperAdminOrgVerification';
+import LiveQueueAdmin from './LiveQueueAdmin';
+import AnalyticsAdmin from './AnalyticsAdmin';
+import UsersAdmin from './UsersAdmin';
+import ReportsAdmin from './ReportsAdmin';
+import UserFeedbackAdmin from './UserFeedbackAdmin';
+import BranchSettingsAdmin from './BranchSettingsAdmin';
+import OrgBranchManager from './OrgBranchManager';
 import './index.css';
 
 const containerVariants = {
@@ -20,6 +28,7 @@ const itemVariants = {
 
 export default function Dashboard({ ctx }: { ctx: any }) {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [activeTab, setActiveTab] = useState('Overview');
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -43,13 +52,16 @@ export default function Dashboard({ ctx }: { ctx: any }) {
             </span>
           </div>
           <div className="nav-links">
-            <div className="active">Overview</div>
-            <div>Analytics</div>
-            <div>Branches</div>
-            <div>Staff</div>
-            <div>Users</div>
-            <div>Reports</div>
-            <div>Settings</div>
+            {['Overview','Queue','Analytics','Organizations','Branches','Users','Feedback','Reports','Settings'].map(tab => (
+              <div
+                key={tab}
+                className={activeTab === tab ? 'active' : ''}
+                onClick={() => setActiveTab(tab)}
+                style={{cursor:'pointer', position:'relative'}}
+              >
+                {tab}
+              </div>
+            ))}
           </div>
         </motion.div>
         
@@ -91,6 +103,32 @@ export default function Dashboard({ ctx }: { ctx: any }) {
         initial="hidden"
         animate="visible"
       >
+        {/* ── Queue Tab ── */}
+        {activeTab === 'Queue' && <LiveQueueAdmin ctx={ctx} />}
+
+        {/* ── Analytics Tab ── */}
+        {activeTab === 'Analytics' && <AnalyticsAdmin ctx={ctx} />}
+
+        {/* ── Organizations Tab ── */}
+        {activeTab === 'Organizations' && <SuperAdminOrgVerification />}
+
+        {/* ── Branches Tab ── */}
+        {activeTab === 'Branches' && <OrgBranchManager orgId={ctx.emp?.org_id || ''} orgName={ctx.emp?.name || 'Platform'} />}
+
+        {/* ── Users Tab ── */}
+        {activeTab === 'Users' && <UsersAdmin ctx={ctx} />}
+
+        {/* ── Feedback Tab ── */}
+        {activeTab === 'Feedback' && <UserFeedbackAdmin ctx={ctx} />}
+
+        {/* ── Reports Tab ── */}
+        {activeTab === 'Reports' && <ReportsAdmin ctx={ctx} />}
+
+        {/* ── Settings Tab ── */}
+        {activeTab === 'Settings' && <BranchSettingsAdmin ctx={ctx} />}
+
+        {/* ── Overview Tab (default) ── */}
+        {activeTab === 'Overview' && <>
         <motion.div variants={itemVariants} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginBottom:'24px'}}>
           <div>
             <div style={{fontSize:'26px',fontWeight:700,color:'var(--color-foreground)',fontFamily:"Inter, system-ui, sans-serif"}}>Good morning, {ctx.emp.name?.split(' ')[0] || 'Admin'}</div>
@@ -252,6 +290,7 @@ export default function Dashboard({ ctx }: { ctx: any }) {
             </div>
           </div>
         </motion.div>
+        </> }
 
       </motion.div>
     </div>

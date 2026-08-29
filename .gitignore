@@ -31,3 +31,7 @@ zim-queue-admin/.env
 smart-queue-app/node_modules/
 smart-queue-app/.expo/
 smart-queue-app/web-build/
+
+# Scratch & temporary
+scratch/
+

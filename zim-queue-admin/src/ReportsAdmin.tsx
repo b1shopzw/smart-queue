@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from './utils/supabase';
 
 export default function ReportsAdmin({ branchId }: { branchId: string }) {

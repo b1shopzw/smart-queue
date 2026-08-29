@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Lock, LogIn, User, Eye, EyeOff } from 'lucide-react';
+import { Lock, LogIn, User, Eye, EyeOff, UserPlus } from 'lucide-react';
 import { apiRequest } from './utils/api';
 import { supabase } from './utils/supabase';
 

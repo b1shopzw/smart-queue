@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, Building2, MapPin, Eye, EyeOff, ChevronDown } from 'lucide-react';
@@ -6,7 +6,7 @@ import { supabase } from './utils/supabase';
 
 const BANK_DATA: Record<string, Record<string, string[]>> = {
   "Harare Metropolitan": {
-    "Harare CBD": ["CBZ Bank – 1st St","Stanbic Bank – Jason Moyo Ave","Standard Chartered – Samora Machel","FBC Bank – Rotten Row","Nedbank – First St","Ecobank – Angwa St","NMB Bank – Jason Moyo","BancABC – Speke Ave","BancABC – Heritage House","First Capital Bank – 1st St","ZB Bank – Kwame Nkrumah","CABS – Eastgate Mall","POSB – Kaguvi St","NBS – Broadstone"],
+    "Harare CBD": ["CBZ Bank – 1st St","Stanbic Bank – Jason Moyo Ave","Standard Chartered – Samora Machel","FBC Bank – Rotten Row","Nedbank – First St","Ecobank – Angwa St","NMB Bank – Jason Moyo","BancABC – Speke Ave","BancABC – Heritage House","First Capital Bank – 1st St","ZB Bank – Kwame Nkrumah","CABS – Eastgate Mall","POSB – Kaguvi St","NBS – Broadstone","GetBucks Microfinance Bank","EmpowerBank – Kwame Nkrumah"],
     "Borrowdale": ["CBZ Bank – Sam Levy Village","Stanbic – Borrowdale Village","Steward Bank – Borrowdale","Standard Chartered – Borrowdale","BancABC – Sam Levy Village"],
     "Avondale": ["Steward Bank – Avondale","POSB – Avondale","ZB Bank – Avondale"],
     "Chitungwiza": ["CBZ Bank – Chitungwiza","ZB Bank – St Marys","POSB – Chitungwiza Town Centre","Steward Bank – Unit H"],
@@ -15,7 +15,7 @@ const BANK_DATA: Record<string, Record<string, string[]>> = {
     "Mbare": ["Steward Bank – Mbare Musika","POSB – Mbare"],
   },
   "Bulawayo Metropolitan": {
-    "Bulawayo CBD": ["CBZ – 8th Ave / Jason Moyo","Stanbic – Joshua Nkomo St","FBC Bank – 9th Ave","Nedbank – Fort St","BancABC – 10th Ave / Jason Moyo","First Capital Bank – Joshua Nkomo","Steward Bank – Fife St","ZB Bank – 10th Ave","CABS – Jason Moyo Ave","POSB – 8th Ave","NBS – Fort St"],
+    "Bulawayo CBD": ["CBZ – 8th Ave / Jason Moyo","Stanbic – Joshua Nkomo St","FBC Bank – 9th Ave","Nedbank – Fort St","BancABC – 10th Ave / Jason Moyo","First Capital Bank – Joshua Nkomo","Steward Bank – Fife St","ZB Bank – 10th Ave","CABS – Jason Moyo Ave","POSB – 8th Ave","NBS – Fort St","EmpowerBank – Bulawayo"],
     "Nkulumane": ["POSB – Nkulumane","ZB Bank – Nkulumane","Steward Bank – Nketa"],
     "Luveve": ["POSB – Luveve","CBZ – Luveve"],
   },
@@ -174,10 +174,76 @@ const ID_DATA: Record<string, Record<string, string[]>> = {
   },
 };
 
+const TELECOM_DATA: Record<string, Record<string, string[]>> = {
+  "Harare Metropolitan": {
+    "Harare CBD": ["Econet Shop – Joina City","Econet Shop – First St","NetOne Customer Care – Kopje","NetOne Customer Care – First St","Telecel Shop – Inez Terrace","TelOne Client Center – Runhare House"],
+    "Borrowdale": ["Econet Shop – Sam Levy's Village","Liquid Home – Borrowdale"],
+    "Avondale": ["Econet Shop – Avondale","TelOne Client Center – Avondale"],
+    "Chitungwiza": ["Econet Shop – Chitungwiza Town Centre","NetOne – Chitungwiza","TelOne – Chitungwiza"],
+  },
+  "Bulawayo Metropolitan": {
+    "Bulawayo CBD": ["Econet Shop – Main Branch (Jason Moyo)","NetOne Customer Care – Leopold Takawira","Telecel Shop – 8th Ave","TelOne Client Center – Main Post Office"],
+  },
+  "Midlands": {
+    "Gweru": ["Econet Shop – Main St Gweru","NetOne – Gweru","TelOne – Gweru"],
+    "Kwekwe": ["Econet Shop – Kwekwe","TelOne – Kwekwe"],
+  },
+  "Manicaland": {
+    "Mutare": ["Econet Shop – Herbert Chitepo Mutare","NetOne – Mutare","TelOne – Mutare"],
+  },
+  "Masvingo": {
+    "Masvingo": ["Econet Shop – Masvingo","NetOne – Masvingo","TelOne – Masvingo"],
+  },
+  "Mashonaland West": {
+    "Chinhoyi": ["Econet Shop – Chinhoyi","TelOne – Chinhoyi"],
+  },
+};
+
+const UTILITY_DATA: Record<string, Record<string, string[]>> = {
+  "Harare Metropolitan": {
+    "Harare CBD": ["ZETDC / ZESA – Harare Central (Samora Machel)","ZIMRA Customs – Kurima House","NSSA House – Harare","City of Harare – Town House","ZINARA – Belvedere Head Office"],
+    "Eastlea": ["VID – Eastlea Vehicle Inspection Depot"],
+    "Wynford": ["ZETDC – Wynford Depot"],
+    "Chitungwiza": ["ZETDC – Chitungwiza Depot","Chitungwiza Municipality Head Office"],
+  },
+  "Bulawayo Metropolitan": {
+    "Bulawayo CBD": ["ZETDC – Bulawayo Central","ZIMRA – Mhlahlandlela Govt Complex","Bulawayo City Council – Tower Block","NSSA – Bulawayo Regional Office","VID – Bulawayo Depot"],
+  },
+  "Manicaland": {
+    "Mutare": ["ZETDC – Mutare District","ZIMRA – Forbes Border Post","City of Mutare – Civic Centre","NSSA – Mutare"],
+  },
+  "Midlands": {
+    "Gweru": ["ZETDC – Gweru Main Depot","Gweru City Council – Civic Centre","NSSA – Gweru"],
+  },
+  "Masvingo": {
+    "Masvingo": ["ZETDC – Masvingo District","Masvingo City Council","NSSA – Masvingo"],
+  },
+};
+
+const REMITTANCE_DATA: Record<string, Record<string, string[]>> = {
+  "Harare Metropolitan": {
+    "Harare CBD": ["Mukuru – Joina City","Mukuru – Speke Ave","Western Union – Post Office Arcade","WorldRemit Hub – Samora Machel"],
+    "Chitungwiza": ["Mukuru – Chitungwiza Town Centre"],
+  },
+  "Bulawayo Metropolitan": {
+    "Bulawayo CBD": ["Mukuru – 8th Ave Bulawayo","Western Union – Main Post Office"],
+  },
+  "Manicaland": {
+    "Mutare": ["Mukuru – Mutare Central"],
+  },
+  "Midlands": {
+    "Gweru": ["Mukuru – Gweru Main St"],
+  },
+};
+
 function getDataMap(service: string): Record<string, Record<string, string[]>> {
   if (service === 'banks') return BANK_DATA;
   if (service === 'passport') return PASSPORT_DATA;
-  return ID_DATA;
+  if (service === 'id') return ID_DATA;
+  if (service === 'telecoms') return TELECOM_DATA;
+  if (service === 'utilities') return UTILITY_DATA;
+  if (service === 'remittances') return REMITTANCE_DATA;
+  return BANK_DATA;
 }
 
 const sel: React.CSSProperties = {
@@ -208,7 +274,10 @@ export default function AdminSignup() {
       service_type: service, branch_name: fd.get('branch_name'), password: fd.get('password'),
     };
     try {
-      const prefix = service === 'banks' ? 'BNK' : service === 'passport' ? 'PASS' : 'ID';
+      const prefixMap: Record<string, string> = {
+        banks: 'BNK', passport: 'PASS', id: 'ID', telecoms: 'TEL', utilities: 'UTL', remittances: 'REM'
+      };
+      const prefix = prefixMap[service] || 'ADM';
       const employee_id = `${prefix}${Math.floor(1000 + Math.random() * 9000)}`;
       const { error } = await supabase.from('employees').insert([{ employee_id, ...payload }]);
       if (error) throw error;
@@ -262,7 +331,10 @@ export default function AdminSignup() {
               <select value={service} onChange={e => onServiceChange(e.target.value)} style={sel}>
                 <option value="passport">Passport Offices</option>
                 <option value="id">National ID Centers</option>
-                <option value="banks">Retail Banks</option>
+                <option value="banks">Retail Banks & Microfinance</option>
+                <option value="telecoms">Telecoms & Internet (Econet, NetOne, TelOne, Liquid)</option>
+                <option value="utilities">Utilities & Municipalities (ZETDC/ZESA, ZIMRA, NSSA, VID, City Councils)</option>
+                <option value="remittances">Remittance & Money Transfer (Mukuru, Western Union, WorldRemit)</option>
               </select>
               <ChevronDown style={chevronStyle} size={16} />
             </div>

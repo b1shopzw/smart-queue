@@ -18,6 +18,8 @@ import QueueHistoryScreen from '../screens/QueueHistoryScreen';
 import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
 import FeedbackScreen from '../screens/FeedbackScreen';
 import BranchMapScreen from '../screens/BranchMapScreen';
+import OrgSignupScreen from '../screens/OrgSignupScreen';
+import AcceptInviteScreen from '../screens/AcceptInviteScreen';
 
 const RootStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -45,6 +47,8 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="BanksList" component={BanksListScreen} />
       <HomeStack.Screen name="BranchDetail" component={BranchDetailScreen} />
       <HomeStack.Screen name="BranchMap" component={BranchMapScreen} />
+      <HomeStack.Screen name="OrgSignup" component={OrgSignupScreen} />
+      <HomeStack.Screen name="AcceptInvite" component={AcceptInviteScreen} />
       <HomeStack.Screen name="SelectSlot" component={SelectSlotScreen} />
       <HomeStack.Screen name="Queue" component={QueueScreen} />
       <HomeStack.Screen name="Feedback" component={FeedbackScreen} />

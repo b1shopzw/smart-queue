@@ -3,11 +3,53 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
+}
+
+model organizations {
+  id                  String        @id @default(uuid())
+  name                String
+  type                String // bank, id_office, passport_office, other
+  registration_number String        @unique
+  contact_email       String
+  contact_phone       String
+  status              String        @default("pending") // pending, verified, rejected, suspended
+  rejection_reason    String?
+  created_at          DateTime      @default(now())
+  verified_at         DateTime?
+  verified_by         String?
+  branches            branches[]
+  org_members         org_members[]
+  org_invites         org_invites[]
+}
+
+model org_members {
+  id         String       @id @default(uuid())
+  org_id     String
+  user_id    String
+  role       String // owner, admin, staff
+  invited_by String?
+  joined_at  DateTime     @default(now())
+  org        organizations @relation(fields: [org_id], references: [id], onDelete: Cascade)
+
+  @@unique([org_id, user_id])
+}
+
+model org_invites {
+  id         String       @id @default(uuid())
+  org_id     String
+  email      String
+  role       String // admin, staff
+  token      String       @unique
+  expires_at DateTime
+  created_by String
+  created_at DateTime     @default(now())
+  org        organizations @relation(fields: [org_id], references: [id], onDelete: Cascade)
 }
 
 model branches {
   branch_id             String          @id
+  org_id                String?
   bank_code             String?
   bank_name             String
   city                  String
@@ -21,6 +63,7 @@ model branches {
   operating_hours_end   String?         @default("16:00")
   max_capacity          Int?            @default(100)
   services              String[]        @default(["Banking"])
+  org                   organizations?  @relation(fields: [org_id], references: [id], onDelete: Cascade)
   employees             employees[]
   queue_tickets         queue_tickets[]
   user_feedback         user_feedback[]

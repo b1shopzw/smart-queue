@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, Building2, MapPin, Eye, EyeOff, ChevronDown } from 'lucide-react';
@@ -6,8 +6,8 @@ import { supabase } from './utils/supabase';
 
 const BANK_DATA: Record<string, Record<string, string[]>> = {
   "Harare Metropolitan": {
-    "Harare CBD": ["CBZ Bank – 1st St","Stanbic Bank – Jason Moyo Ave","Standard Chartered – Samora Machel","FBC Bank – Rotten Row","Nedbank – First St","Ecobank – Angwa St","NMB Bank – Jason Moyo","BancABC – Speke Ave","First Capital Bank – 1st St","ZB Bank – Kwame Nkrumah","CABS – Eastgate Mall","POSB – Kaguvi St","NBS – Broadstone"],
-    "Borrowdale": ["CBZ Bank – Sam Levy Village","Stanbic – Borrowdale Village","Steward Bank – Borrowdale","Standard Chartered – Borrowdale"],
+    "Harare CBD": ["CBZ Bank – 1st St","Stanbic Bank – Jason Moyo Ave","Standard Chartered – Samora Machel","FBC Bank – Rotten Row","Nedbank – First St","Ecobank – Angwa St","NMB Bank – Jason Moyo","BancABC – Speke Ave","BancABC – Heritage House","First Capital Bank – 1st St","ZB Bank – Kwame Nkrumah","CABS – Eastgate Mall","POSB – Kaguvi St","NBS – Broadstone"],
+    "Borrowdale": ["CBZ Bank – Sam Levy Village","Stanbic – Borrowdale Village","Steward Bank – Borrowdale","Standard Chartered – Borrowdale","BancABC – Sam Levy Village"],
     "Avondale": ["Steward Bank – Avondale","POSB – Avondale","ZB Bank – Avondale"],
     "Chitungwiza": ["CBZ Bank – Chitungwiza","ZB Bank – St Marys","POSB – Chitungwiza Town Centre","Steward Bank – Unit H"],
     "Highfield": ["POSB – Highfield","ZB Bank – Highfield","Steward Bank – Highfield"],
@@ -15,53 +15,53 @@ const BANK_DATA: Record<string, Record<string, string[]>> = {
     "Mbare": ["Steward Bank – Mbare Musika","POSB – Mbare"],
   },
   "Bulawayo Metropolitan": {
-    "Bulawayo CBD": ["CBZ – 8th Ave / Jason Moyo","Stanbic – Joshua Nkomo St","FBC Bank – 9th Ave","Nedbank – Fort St","BancABC – 10th Ave","First Capital Bank – Joshua Nkomo","Steward Bank – Fife St","ZB Bank – 10th Ave","CABS – Jason Moyo Ave","POSB – 8th Ave","NBS – Fort St"],
+    "Bulawayo CBD": ["CBZ – 8th Ave / Jason Moyo","Stanbic – Joshua Nkomo St","FBC Bank – 9th Ave","Nedbank – Fort St","BancABC – 10th Ave / Jason Moyo","First Capital Bank – Joshua Nkomo","Steward Bank – Fife St","ZB Bank – 10th Ave","CABS – Jason Moyo Ave","POSB – 8th Ave","NBS – Fort St"],
     "Nkulumane": ["POSB – Nkulumane","ZB Bank – Nkulumane","Steward Bank – Nketa"],
     "Luveve": ["POSB – Luveve","CBZ – Luveve"],
   },
   "Midlands": {
-    "Gweru": ["CBZ – Main St Gweru","Stanbic – Gweru","FBC Bank – Gweru","ZB Bank – Gweru","CABS – Gweru","POSB – Gweru"],
-    "Kwekwe": ["CBZ – Kwekwe","Steward Bank – Kwekwe","POSB – Kwekwe","ZB Bank – Kwekwe","FBC – Kwekwe"],
-    "Zvishavane": ["POSB – Zvishavane","FBC Bank – Zvishavane","ZB Bank – Zvishavane"],
+    "Gweru": ["CBZ – Main St Gweru","Stanbic – Gweru","FBC Bank – Gweru","ZB Bank – Gweru","BancABC – Main St Gweru","CABS – Gweru","POSB – Gweru"],
+    "Kwekwe": ["CBZ – Kwekwe","Steward Bank – Kwekwe","POSB – Kwekwe","ZB Bank – Kwekwe","FBC – Kwekwe","BancABC – Kwekwe Branch"],
+    "Zvishavane": ["POSB – Zvishavane","FBC Bank – Zvishavane","ZB Bank – Zvishavane","BancABC – Zvishavane Branch"],
     "Shurugwi": ["POSB – Shurugwi"],
   },
   "Manicaland": {
-    "Mutare": ["CBZ – H. Chitepo Ave Mutare","Stanbic – Mutare","FBC Bank – Mutare","Nedbank – Mutare","Steward Bank – Mutare","CABS – Mutare","POSB – Mutare","First Capital Bank – Mutare","ZB Bank – Mutare","Agribank/AFC – Mutare"],
+    "Mutare": ["CBZ – H. Chitepo Ave Mutare","Stanbic – Mutare","FBC Bank – Mutare","Nedbank – Mutare","BancABC – Herbert Chitepo Ave","Steward Bank – Mutare","CABS – Mutare","POSB – Mutare","First Capital Bank – Mutare","ZB Bank – Mutare","Agribank/AFC – Mutare"],
     "Rusape": ["CBZ – Rusape","Agribank/AFC – Rusape","POSB – Rusape"],
     "Chipinge": ["FBC – Chipinge","POSB – Chipinge","ZB Bank – Chipinge"],
     "Nyanga": ["POSB – Nyanga"],
   },
   "Masvingo": {
-    "Masvingo": ["CBZ – Masvingo","Steward Bank – Masvingo","FBC Bank – Masvingo","CABS – Masvingo","POSB – Masvingo","ZB Bank – Masvingo","First Capital Bank – Masvingo"],
+    "Masvingo": ["CBZ – Masvingo","Steward Bank – Masvingo","FBC Bank – Masvingo","BancABC – Robert Mugabe Way","CABS – Masvingo","POSB – Masvingo","ZB Bank – Masvingo","First Capital Bank – Masvingo"],
     "Chiredzi": ["CBZ – Chiredzi","POSB – Chiredzi"],
     "Triangle": ["Stanbic – Triangle"],
     "Bikita": ["POSB – Bikita"],
   },
   "Mashonaland West": {
-    "Chinhoyi": ["CBZ – Chinhoyi","Stanbic – Chinhoyi","ZB Bank – Chinhoyi","POSB – Chinhoyi","FBC – Chinhoyi"],
+    "Chinhoyi": ["CBZ – Chinhoyi","Stanbic – Chinhoyi","ZB Bank – Chinhoyi","BancABC – Chinhoyi Branch","POSB – Chinhoyi","FBC – Chinhoyi"],
     "Kadoma": ["CBZ – Kadoma","FBC Bank – Kadoma","CABS – Kadoma","POSB – Kadoma"],
     "Chegutu": ["POSB – Chegutu","ZB Bank – Chegutu"],
     "Norton": ["POSB – Norton","Steward Bank – Norton"],
     "Kariba": ["POSB – Kariba","ZB Bank – Kariba"],
   },
   "Mashonaland East": {
-    "Marondera": ["CBZ – Marondera","FBC Bank – Marondera","Steward Bank – Marondera","CABS – Marondera","POSB – Marondera","ZB Bank – Marondera","AFC Land Bank – Marondera"],
+    "Marondera": ["CBZ – Marondera","FBC Bank – Marondera","Steward Bank – Marondera","BancABC – Marondera Branch","CABS – Marondera","POSB – Marondera","ZB Bank – Marondera","AFC Land Bank – Marondera"],
     "Mutoko": ["CBZ – Mutoko","POSB – Mutoko"],
     "Murehwa": ["POSB – Murehwa"],
     "Goromonzi": ["POSB – Goromonzi"],
   },
   "Matabeleland South": {
     "Gwanda": ["CBZ – Gwanda","FBC Bank – Gwanda","POSB – Gwanda","ZB Bank – Gwanda"],
-    "Beitbridge": ["CBZ – Beitbridge","Stanbic – Beitbridge","CABS – Beitbridge","POSB – Beitbridge"],
+    "Beitbridge": ["CBZ – Beitbridge","Stanbic – Beitbridge","BancABC – Beitbridge Branch","CABS – Beitbridge","POSB – Beitbridge"],
     "Plumtree": ["POSB – Plumtree"],
   },
   "Matabeleland North": {
-    "Victoria Falls": ["CBZ – Victoria Falls","POSB – Victoria Falls","Steward Bank – Victoria Falls"],
+    "Victoria Falls": ["CBZ – Victoria Falls","BancABC – Victoria Falls Branch","POSB – Victoria Falls","Steward Bank – Victoria Falls"],
     "Hwange": ["CBZ – Hwange","POSB – Hwange","ZB Bank – Hwange"],
     "Lupane": ["POSB – Lupane"],
   },
   "Mashonaland Central": {
-    "Bindura": ["CBZ – Bindura","POSB – Bindura","ZB Bank – Bindura"],
+    "Bindura": ["CBZ – Bindura","BancABC – Bindura Branch","POSB – Bindura","ZB Bank – Bindura"],
     "Mount Darwin": ["POSB – Mount Darwin","CBZ – Mount Darwin"],
     "Guruve": ["POSB – Guruve"],
     "Concession": ["ZB Bank – Concession"],
